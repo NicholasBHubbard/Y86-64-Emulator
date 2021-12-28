@@ -2,7 +2,7 @@
 
 (defpackage #:Y8664-parser
   (:nicknames #:parser #:p)
-  (:use #:cl #:smug)
+  (:use #:cl #:parmesan)
   (:import-from #:alexandria #:curry))
 
 (in-package #:Y8664-parser)
@@ -22,3 +22,8 @@
           (rest  (.zero-or-more (.or (.upper-case-p) (.digit-char-p))))
           (_     (.char= #\:)))
     (.identity (format nil "~a~{~a~}" first rest))))
+
+(defun value-parser () ; TODO
+  (.let* ((neg  (.optional (.char= #\-)))
+          (nums (.one-or-more (.digit-char-p))))
+    (.identity (format nil "~a~{~a~}" neg nums))))

@@ -5,6 +5,7 @@
 ;;;; the query functions.
 
 (defpackage Y8664-opcode-table-test
+  (:export #:run-tests)
   (:nicknames #:opct-t)
   (:use #:cl #:fiveam)
   (:import-from #:alexandria
@@ -14,7 +15,7 @@
 (in-package #:Y8664-opcode-table-test)
 
 (def-suite Y8664-opcode-table-suite
-  :description "Test suite for the Y8664-opcode package")
+  :description "Test suite for the Y8664-opcode-table package")
 
 (in-suite Y8664-opcode-table-suite)
 
@@ -57,32 +58,33 @@
 
 (test opcode-p-trues
   (is-true (every (curry #'funcall *opcode-table* :opcode-p) *opcodes*)))
+
 (test opcode-p-falses
   (is-true (notany (curry #'funcall *opcode-table* :opcode-p)
                    (list 256 -1))))
 
 (test all-opcodes
-  (is-true (equal (sort (funcall *opcode-table* :all-opcodes) #'<)
+  (is-true (equal (funcall *opcode-table* :all-opcodes)
                   (sort (copy-seq *opcodes*) #'<))))
 
 (test all-mnemonics
-  (is-true (equal (sort (funcall *opcode-table* :all-mnemonics) #'string<)
+  (is-true (equal (funcall *opcode-table* :all-mnemonics)
                   (sort (copy-seq *mnemonics*) #'string<))))
 
 (test all-types
-  (is-true (equal (sort (funcall *opcode-table* :all-types) #'string<)
+  (is-true (equal (funcall *opcode-table* :all-types)
                   (sort (copy-seq *types*) #'string<))))
 
 (test all-opcode-strings
-  (is-true (equal (sort (funcall *opcode-table* :all-opcode-strings) #'string<)
+  (is-true (equal (funcall *opcode-table* :all-opcode-strings)
                   (sort (copy-seq *opcode-strings*) #'string<))))
 
 (test all-mnemonic-strings
-  (is-true (equal (sort (funcall *opcode-table* :all-mnemonic-strings) #'string<)
+  (is-true (equal (funcall *opcode-table* :all-mnemonic-strings)
                   (sort (copy-seq *mnemonic-strings*) #'string<))))
 
 (test all-type-strings
-  (is-true (equal (sort (funcall *opcode-table* :all-type-strings) #'string<)
+  (is-true (equal (funcall *opcode-table* :all-type-strings)
                   (sort (copy-seq *type-strings*) #'string<))))
 
 (test opcode-mnemonic
@@ -146,33 +148,33 @@
   (is-false (funcall *opcode-table* :mnemonic-size-match-p :PUSHQ 1)))
 
 (test type-mnemonics
-  (is-true (equal (sort (funcall *opcode-table* :type-mnemonics :N) #'string<)
+  (is-true (equal (funcall *opcode-table* :type-mnemonics :N)
                   (sort (list :HALT :NOP :RET) #'string<))))
 
 (test type-opcodes
-  (is-true (equal (sort (funcall *opcode-table* :type-opcodes :IR) #'<)
+  (is-true (equal (funcall *opcode-table* :type-opcodes :IR)
                   (sort (list #x30) #'<))))
 
 (test type-mnemonic-strings
-  (is-true (equal (sort (funcall *opcode-table* :type-mnemonic-strings :N) #'string<)
+  (is-true (equal (funcall *opcode-table* :type-mnemonic-strings :N)
                   (sort (list "HALT" "NOP" "RET") #'string<))))
 
 (test type-opcode-strings
-  (is-true (equal (sort (funcall *opcode-table* :type-opcode-strings :IR) #'string<)
+  (is-true (equal (funcall *opcode-table* :type-opcode-strings :IR)
                   (sort (list "30") #'string<))))
 
 (test size-opcodes
-  (is-true (equal (sort (funcall *opcode-table* :size-opcodes 10) #'<)
+  (is-true (equal (funcall *opcode-table* :size-opcodes 10)
                   (sort (list #x30 #x40 #x50) #'<))))
 
 (test size-mnemonics
-  (is-true (equal (sort (funcall *opcode-table* :size-mnemonics 1) #'string<)
+  (is-true (equal (funcall *opcode-table* :size-mnemonics 1)
                   (sort (list :HALT :NOP :RET) #'string<))))
 
 (test size-opcode-strings
-  (is-true (equal (sort (funcall *opcode-table* :size-opcode-strings 2) #'string<)
+  (is-true (equal (funcall *opcode-table* :size-opcode-strings 2)
                   (sort (list "20" "60" "61" "62" "63" "21" "22" "23" "24" "25" "26" "A0") #'string<))))
 
 (test size-mnemonic-strings
-  (is-true (equal (sort (funcall *opcode-table* :size-mnemonic-strings 10) #'string<)
+  (is-true (equal (funcall *opcode-table* :size-mnemonic-strings 10)
                   (sort (list "IRMOVQ" "RMMOVQ" "MRMOVQ") #'string<))))

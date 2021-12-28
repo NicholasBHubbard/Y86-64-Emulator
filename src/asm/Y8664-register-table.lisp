@@ -11,9 +11,12 @@
 
 (in-package #:Y8664-register-table)
 
+(deftype register ()
+  '(member :RAX :RCX :RDX :RBX :RSP :RBP :RSI :RDI :R8 :R9 :R10 :R11 :R12 :R13 :R14 :NOREG))
+
 (defstruct entry
-  (id    nil :type (unsigned-byte 8))
-  (name  nil :type keyword))
+  (id    nil :type (unsigned-byte 8) :read-only t)
+  (name  nil :type register          :read-only t))
 
 (defun register-table ()
   (let ((register-table
@@ -57,22 +60,24 @@
                t))
           
           (:all-ids
-           ;; a list of all the Y86-64 register ids
-           (mapcar #'entry-id register-table))
+           ;; list of all the Y86-64 register ids
+           (sort (mapcar #'entry-id register-table) #'<))
           
           (:all-register-names
-           ;; a list of all the Y86-64 register names
-           (mapcar #'entry-name register-table))
+           ;; list of all the Y86-64 register names
+           (sort (mapcar #'entry-name register-table) #'string<))
           
           (:all-id-strings
            ;; like :ALL-IDS except stringify the ids
-           (mapcar
-            (compose (curry #'format nil "~x") #'entry-id)
-            register-table))
+           (sort (mapcar
+                  (compose (curry #'format nil "~x") #'entry-id)
+                  register-table)
+                 #'string<))
           
           (:all-register-name-strings
            ;; like :ALL-REGISTER-NAMES except stringify the register names
-           (mapcar (compose #'symbol-name #'entry-name) register-table))
+           (sort (mapcar (compose #'symbol-name #'entry-name) register-table)
+                 #'string<))
           
           (:id-register-name
            ;; the register name associated to the id (FIRST INPUTS)
@@ -113,4 +118,4 @@
                   register-table))))
 
           (otherwise
-           (error (format t "The symbol ~a does not denote a valid function" function-keyword))))))))
+           (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))

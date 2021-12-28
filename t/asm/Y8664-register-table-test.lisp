@@ -4,6 +4,7 @@
 ;;;; querying the Register Table.
 
 (defpackage Y8664-register-table-test
+  (:export #:run-tests)
   (:nicknames #:regt-t)
   (:use #:cl #:fiveam)
   (:import-from #:alexandria
@@ -13,7 +14,7 @@
 (in-package #:Y8664-register-table-test)
 
 (def-suite Y8664-register-table-suite
-  :description "Test suite for the Y8664-opcode package")
+  :description "Test suite for the Y8664-register-table package")
 
 (in-suite Y8664-register-table-suite)
 
@@ -49,20 +50,20 @@
                    (list -1 256))))
 
 (test all-ids
-  (is-true (equal (sort (funcall *register-table* :all-ids) #'<)
+  (is-true (equal (funcall *register-table* :all-ids)
                   (sort (copy-seq *ids*) #'<))))
 
 (test all-register-names
-  (is-true (equal (sort (funcall *register-table* :all-register-names) #'string<)
+  (is-true (equal (funcall *register-table* :all-register-names)
                   (sort (copy-seq *register-names*) #'string<))))
 
 (test all-id-strings
-  (is-true (equal (sort (funcall *register-table* :all-id-strings) #'string<)
+  (is-true (equal (funcall *register-table* :all-id-strings)
                   (sort (copy-seq *id-strings*) #'string<))))
 
 (test all-register-name-strings
   (is-true
-   (equal (sort (funcall *register-table* :all-register-name-strings) #'string<)
+   (equal (funcall *register-table* :all-register-name-strings)
           (sort (copy-seq *register-name-strings*) #'string<))))
 
 (test id-register-name

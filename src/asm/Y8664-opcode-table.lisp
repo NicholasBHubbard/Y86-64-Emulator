@@ -13,12 +13,18 @@
 
 (in-package #:Y8664-opcode-table)
 
+(deftype opcode-type ()
+  '(member :N :M :R :RR :IR))
+
+(deftype mnemonic ()
+  `(member :HALT :NOP :RRMOVQ :IRMOVQ :RMMOVQ :MRMOVQ :ADDQ :SUBQ :ANDQ :XORQ :JMP :JLE :JL :JE :JNE :JGE :JG :CMOVLE :CMOVL :CMOVE :CMOVNE :CMOVGE :CMOVG :CALL :RET :PUSHQ))
+
 (defstruct entry
   "The type for a Y86-64 OpCode Table entry. Note that this type is not exported
    as it is for internal use only."
   (opcode   nil :type (unsigned-byte 8) :read-only t)
-  (mnemonic nil :type keyword           :read-only t)
-  (type     nil :type keyword           :read-only t)
+  (mnemonic nil :type mnemonic          :read-only t)
+  (type     nil :type opcode-type       :read-only t)
   (size     nil :type (unsigned-byte 8) :read-only t))
    
 (defun opcode-table ()
@@ -80,31 +86,33 @@
                t))        
 
           (:all-opcodes
-           ;; all the opcodes of the Y86-64 ISA
-           (mapcar #'entry-opcode opcode-table))
+           ;; list of all the opcodes of the Y86-64 ISA
+           (sort (mapcar #'entry-opcode opcode-table) #'<))
           
           (:all-mnemonics
-           ;; all the mnemonics of the Y86-64 ISA
-           (mapcar #'entry-mnemonic opcode-table)) 
+           ;; list of all the mnemonics of the Y86-64 ISA
+           (sort (mapcar #'entry-mnemonic opcode-table) #'string<))
           
           (:all-types
-           ;; all the entry types of the Y86-64 ISA
-           (remove-duplicates (mapcar #'entry-type opcode-table)))
+           ;; list of all the instruction types of the Y86-64 ISA
+           (sort (remove-duplicates (mapcar #'entry-type opcode-table)) #'string<))
           
           (:all-opcode-strings
            ;; like :ALL-OPCODES but stringify the opcodes
-           (mapcar
-            (compose (curry #'format nil "~x") #'entry-opcode)
-            opcode-table))
+           (sort (mapcar
+                  (compose (curry #'format nil "~x") #'entry-opcode)
+                  opcode-table)
+                 #'string<))
           
           (:all-mnemonic-strings
            ;; like :ALL-MNEMONICS but stringify the mnemonics
-           (mapcar (compose #'symbol-name #'entry-mnemonic) opcode-table))
+           (sort (mapcar (compose #'symbol-name #'entry-mnemonic) opcode-table) #'string<))
           
           (:all-type-strings
            ;; like :ALL-TYPES but stringify the types
-           (remove-duplicates
-            (mapcar (compose #'symbol-name #'entry-type) opcode-table)))
+           (sort (remove-duplicates
+                  (mapcar (compose #'symbol-name #'entry-type) opcode-table))
+                 #'string<))
           
           (:opcode-mnemonic
            ;; the mnemonic that has the opcode (FIRST INPUTS)
@@ -220,60 +228,68 @@
                 opcode-table))))
           
           (:type-mnemonics
-           ;; all the mnemonics that have the type (FIRST INPUTS)
-           (mapcar #'entry-mnemonic
-                   (remove-if-not
-                    (compose (curry #'eql (first inputs)) #'entry-type)
-                    opcode-table)))
+           ;; list of all the mnemonics that have the type (FIRST INPUTS)
+           (sort (mapcar #'entry-mnemonic
+                         (remove-if-not
+                          (compose (curry #'eql (first inputs)) #'entry-type)
+                          opcode-table))
+                 #'string<))
           
           (:type-opcodes
-           ;; all the opcodes that have the type (FIRST INPUTS)
-           (mapcar #'entry-opcode
-                   (remove-if-not
-                    (compose (curry #'eql (first inputs)) #'entry-type)
-                    opcode-table)))
+           ;; list of all the opcodes that have the type (FIRST INPUTS)
+           (sort (mapcar #'entry-opcode
+                         (remove-if-not
+                          (compose (curry #'eql (first inputs)) #'entry-type)
+                          opcode-table))
+                 #'<))
           
           (:type-mnemonic-strings
            ;; like :TYPE-MNEMONICS but stringify the mnemonics
-           (mapcar (compose #'symbol-name #'entry-mnemonic)
-                   (remove-if-not
-                    (compose (curry #'eql (first inputs)) #'entry-type)
-                    opcode-table))) 
+           (sort (mapcar (compose #'symbol-name #'entry-mnemonic)
+                         (remove-if-not
+                          (compose (curry #'eql (first inputs)) #'entry-type)
+                          opcode-table))
+                 #'string<)) 
 
           (:type-opcode-strings
            ;; like :TYPE-OPCODES except stringify the opcodes
-           (mapcar (compose (curry #'format nil "~x") #'entry-opcode)
-                   (remove-if-not
-                    (compose (curry #'eql (first inputs)) #'entry-type)
-                    opcode-table)))
+           (sort (mapcar (compose (curry #'format nil "~x") #'entry-opcode)
+                         (remove-if-not
+                          (compose (curry #'eql (first inputs)) #'entry-type)
+                          opcode-table))
+                 #'string<))
           
           (:size-opcodes
-           ;; all the opcodes that have size (FIRST INPUTS)
-           (mapcar #'entry-opcode
-                   (remove-if-not
-                    (compose (curry #'= (first inputs)) #'entry-size)
-                    opcode-table)))
+           ;; list of all the opcodes that have size (FIRST INPUTS)
+           (sort (mapcar #'entry-opcode
+                         (remove-if-not
+                          (compose (curry #'= (first inputs)) #'entry-size)
+                          opcode-table))
+                 #'<))
           
           (:size-mnemonics
-           ;; all the mnemonics that have size (FIRST INPUTS)
-           (mapcar #'entry-mnemonic
-                   (remove-if-not
-                    (compose (curry #'= (first inputs)) #'entry-size)
-                    opcode-table))) 
+           ;; list of all the mnemonics that have size (FIRST INPUTS)
+           (sort (mapcar #'entry-mnemonic
+                         (remove-if-not
+                          (compose (curry #'= (first inputs)) #'entry-size)
+                          opcode-table))
+                 #'string<)) 
 
           (:size-opcode-strings
            ;; like :SIZE-OPCODES except stringify the opcodes
-           (mapcar (compose (curry #'format nil "~x") #'entry-opcode)
-                   (remove-if-not
-                    (compose (curry #'= (first inputs)) #'entry-size)
-                    opcode-table)))
+           (sort (mapcar (compose (curry #'format nil "~x") #'entry-opcode)
+                         (remove-if-not
+                          (compose (curry #'= (first inputs)) #'entry-size)
+                          opcode-table))
+                 #'string<))
           
           (:size-mnemonic-strings
            ;; like :SIZE-MNEMONICS except stringify the mnemonics
-           (mapcar (compose #'symbol-name #'entry-mnemonic)
-                   (remove-if-not
-                    (compose (curry #'= (first inputs)) #'entry-size)
-                    opcode-table)))
+           (sort (mapcar (compose #'symbol-name #'entry-mnemonic)
+                         (remove-if-not
+                          (compose (curry #'= (first inputs)) #'entry-size)
+                          opcode-table))
+                 #'string<))
           
           (otherwise
-           (error (format t "The symbol ~a does not denote a valid function" function-keyword))))))))
+           (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))

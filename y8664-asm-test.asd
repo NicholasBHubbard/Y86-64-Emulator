@@ -7,4 +7,5 @@
   :depends-on ("y8664-asm" "fiveam" "alexandria")
   :components ((:file "t/asm/Y8664-register-table-test")
                (:file "t/asm/Y8664-opcode-table-test")
+               (:file "t/asm/symbol-table-test")
                (:file "t/final-test")))
