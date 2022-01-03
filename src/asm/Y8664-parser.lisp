@@ -1,29 +1,29 @@
 ;;;; Parser for Y86-64 assembly language
+;;;;
+;;;; BNF Grammar
+;;;;
+;;;; Start ::= Label | Mnemonic
+;;;; Mnemonic ::= halt | nop | ...
+;;;; Label ::= /^:[A-Z][A-Z0-9]*$/
+;;;; Instruction ::= Mnemonic Operand*
+;;;; Operand ::= Register | Immediate | Memory
+;;;; Register ::= rax | rdx | ...
+;;;; Immediate ::= /[1-9][0-9]*/
+;;;; Memory ::= ?
 
 (defpackage #:Y8664-parser
-  (:nicknames #:parser #:p)
-  (:use #:cl #:parmesan)
-  (:import-from #:alexandria #:curry))
+  (:nicknames #:parser)
+  (:use #:cl #:parse))
 
 (in-package #:Y8664-parser)
 
-(defparameter *opcode-table* (opct:opcode-table))
+(defun make-token-reader (list)
+  #'(lambda ()
+      (let ((x (pop list)))
+        (when x
+          (etypecase x
+            (string    (values :string x))
+            (character (values :character x))
+            (number    (values :number x))
+            (symbol    (values :symbol x)))))))
 
-(defparameter *register-table* (regt:register-table))
-
-(defun mnemonic-parser ()
-  (.one-of #'.string= (funcall *opcode-table* :all-mnemonic-strings)))
-
-(defun register-parser ()
-  (.one-of #'.string= (funcall *register-table* :all-register-name-strings)))
-
-(defun label-parser ()
-  (.let* ((first (.upper-case-p))
-          (rest  (.zero-or-more (.or (.upper-case-p) (.digit-char-p))))
-          (_     (.char= #\:)))
-    (.identity (format nil "~a~{~a~}" first rest))))
-
-(defun value-parser () ; TODO
-  (.let* ((neg  (.optional (.char= #\-)))
-          (nums (.one-or-more (.digit-char-p))))
-    (.identity (format nil "~a~{~a~}" neg nums))))
