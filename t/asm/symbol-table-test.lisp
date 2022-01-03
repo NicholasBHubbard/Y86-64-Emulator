@@ -15,15 +15,12 @@
 
 (defparameter *symbol-table* (symt:symbol-table))
 
-(defmacro test-with-fresh-symbol-table (test-name &body body)
-  "Same as fiveam:test but make available a fresh lexical 
-   symbol-table named SYMBOL-TABLE"
+(defmacro test-wfst (test-name &body body)
+  "wfst = with-fresh-symbol-table. Same as fiveam:test but make available a 
+   fresh lexical symbol-table named SYMBOL-TABLE."
   `(fiveam:test ,test-name
      (let ((symbol-table (symt:symbol-table)))
        ,@body)))
-
-(setf (macro-function 'test-wfst)
-      (macro-function 'test-with-fresh-symbol-table))
 
 ;;; Tests
 
