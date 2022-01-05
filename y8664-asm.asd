@@ -4,7 +4,7 @@
   :maintainer "Nicholas Hubbard"
   :license "MIT"
   :version "0.1"
-  :depends-on ("alexandria" "re" "parse")
+  :depends-on ("alexandria" "re" "parse" "lexer")
   :components ((:file "src/asm/Y8664-register-table")
                (:file "src/asm/symbol-table")
                (:file "src/asm/Y8664-opcode-table")
