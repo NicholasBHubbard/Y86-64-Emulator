@@ -8,4 +8,4 @@
   :components ((:file "t/asm/Y8664-register-table-test")
                (:file "t/asm/Y8664-opcode-table-test")
                (:file "t/asm/symbol-table-test")
-               (:file "t/final-test")))
+               (:file "t/y8664-asm-test")))
