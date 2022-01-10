@@ -1,8 +1,9 @@
-;;;; Register Table for Y86-64.
+;;;; This package exists to export the *REGISTER-TABLE* special variable which
+;;;; is a lexical closure that can be used to dynamically query the static and
+;;;; immutable Y86-64 register table.
 
 (defpackage Y8664-register-table
-  (:nicknames #:regt)
-  (:export #:register-table)
+  (:export #:*register-table*)
   (:use #:cl)
   (:import-from #:alexandria
                 #:curry
@@ -11,6 +12,8 @@
 
 (in-package #:Y8664-register-table)
 
+(defparameter *register-table* (init-register-table))
+
 (deftype register ()
   '(member :RAX :RCX :RDX :RBX :RSP :RBP :RSI :RDI :R8 :R9 :R10 :R11 :R12 :R13 :R14 :NOREG))
 
@@ -18,7 +21,7 @@
   (id    nil :type (unsigned-byte 8) :read-only t)
   (name  nil :type register          :read-only t))
 
-(defun register-table ()
+(defun init-register-table ()
   (let ((register-table
           (list
            (make-entry :id #x0 :name :RAX)
@@ -119,3 +122,5 @@
 
           (otherwise
            (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))
+
+

@@ -1,12 +1,7 @@
-;;;; Test the Y8664-register-table package. This package exports one function
-;;;; which is REGISTER-TABLE. This function returns a closure that closes over
-;;;; Y86-64 Register Table, and provides a dispatch function for mutating and
-;;;; querying the Register Table.
-
 (defpackage Y8664-register-table-test
   (:export #:run-tests)
-  (:nicknames #:regt-t)
   (:use #:cl #:fiveam)
+  (:import-from #:y8664-register-table #:*register-table*)
   (:import-from #:alexandria
                 #:compose
                 #:curry))
@@ -20,11 +15,6 @@
 
 (defun run-tests ()
   (run! 'Y8664-register-table-suite))
-
-;;; *register-table* is a closure over the static Y86-64 Register Table. This
-;;; special variable is the entire point of the Y8664-REGISTER-TABLE package.
-
-(defparameter *register-table* (regt:register-table))
 
 ;;; Define special variables to help avoid writing boilerplate code in the
 ;;; actual tests.

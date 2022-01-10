@@ -6,8 +6,8 @@
 
 (defpackage Y8664-opcode-table-test
   (:export #:run-tests)
-  (:nicknames #:opct-t)
   (:use #:cl #:fiveam)
+  (:import-from #:y8664-opcode-table #:*opcode-table*)
   (:import-from #:alexandria
                 #:compose
                 #:curry))
@@ -21,11 +21,6 @@
 
 (defun run-tests ()
   (run! 'Y8664-opcode-table-suite))
-
-;;; *opcode-table* is a closure over the static Y86-64 OpCode Table. This
-;;; special variable is the entire point of the Y8664-OPCODE-TABLE package.
-
-(defparameter *opcode-table* (opct:opcode-table))
 
 ;;; Define special variables to help avoid writing boilerplate code in the
 ;;; actual tests.

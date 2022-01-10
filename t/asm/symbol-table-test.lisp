@@ -1,7 +1,7 @@
 (defpackage symbol-table-test
   (:export #:run-tests)
-  (:nicknames #:symt-t)
-  (:use #:cl #:fiveam))
+  (:use #:cl #:fiveam)
+  (:import-from #:symbol-table #:*symbol-table*))
 
 (in-package #:symbol-table-test)
 
@@ -13,13 +13,11 @@
 (defun run-tests ()
   (run! 'symbol-table-suite))
 
-(defparameter *symbol-table* (symt:symbol-table))
-
 (defmacro test-wfst (test-name &body body)
-  "wfst = with-fresh-symbol-table. Same as fiveam:test but make available a 
-   fresh lexical symbol-table named SYMBOL-TABLE."
+  "Same as fiveam:test but make available a fresh lexical symbol-table named 
+   SYMBOL-TABLE. The acronym wfst stands for with-fresh-symbol-table."
   `(fiveam:test ,test-name
-     (let ((symbol-table (symt:symbol-table)))
+     (let ((symbol-table (symbol-table:init-symbol-table)))
        ,@body)))
 
 ;;; Tests
@@ -33,7 +31,7 @@
   (is-false (funcall symbol-table :entry-p ":FOO")))
 
 (test-wfst insert-signals-duplicate-symbol
-  (signals symt:duplicate-symbol
+  (signals symbol-table:duplicate-symbol
     (progn
       (funcall symbol-table :insert ":FOO" :U 0)
       (funcall symbol-table :insert ":FOO" :U 1000))))
@@ -44,7 +42,7 @@
              (= 12 (funcall symbol-table :symbol-value ":FOO")))))
 
 (test-wfst symbol-value-signals-undefined-symbol
-  (signals symt:undefined-symbol (funcall symbol-table :symbol-value ":FOO")))
+  (signals symbol-table:undefined-symbol (funcall symbol-table :symbol-value ":FOO")))
 
 (test-wfst symbol-type
   (is-true (progn
@@ -52,4 +50,4 @@
              (eql :U (funcall symbol-table :symbol-type ":FOO")))))
 
 (test-wfst symbol-type-signals-undefined-symbol
-  (signals symt:undefined-symbol (funcall symbol-table :symbol-type ":FOO")))
+  (signals symbol-table:undefined-symbol (funcall symbol-table :symbol-type ":FOO")))

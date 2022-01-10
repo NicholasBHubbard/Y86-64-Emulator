@@ -1,10 +1,9 @@
-;;;; OpCode Table for the Y86-64 ISA. This package exports just one function,
-;;;; OPCODE-TABLE, which returns a closure over the static OpCode Table that is
-;;;; used to dynamically query the table.
+;;;; This package exists to export the *OPCODE-TABLE* special variable which
+;;;; is a lexical closure that can be used to dynamically query the static and
+;;;; immutable Y86-64 opcode table.
 
 (defpackage #:Y8664-opcode-table
-  (:nicknames #:opct)
-  (:export #:opcode-table)
+  (:export #:*opcode-table*)
   (:use #:cl)
   (:import-from #:alexandria
                 #:curry
@@ -12,6 +11,8 @@
                 #:make-keyword))
 
 (in-package #:Y8664-opcode-table)
+
+(defparameter *opcode-table* (init-opcode-table))
 
 (deftype opcode-type ()
   '(member :N :M :R :RR :IR))
@@ -26,8 +27,8 @@
   (mnemonic nil :type mnemonic          :read-only t)
   (type     nil :type opcode-type       :read-only t)
   (size     nil :type (unsigned-byte 8) :read-only t))
-   
-(defun opcode-table ()
+
+(defun init-opcode-table ()
   "Return a closure that closes over the static OpCode Table and returns a
    dispatch table to query the OpCode Table in different ways. None of the query
    functions can mutate the OpCode Table."

@@ -1,15 +1,18 @@
-;;;; The assemblers internal symbol table
+;;;; This package exists to export the *SYMBOL-TABLE* special variable which
+;;;; is a lexical closure that can be used to query and insert into the Y86-64
+;;;; symbol table.
 
 (defpackage symbol-table
-  (:export #:symbol-table
-           #:make-entry
-           #:duplicate-symbol
-           #:undefined-symbol) 
-  (:nicknames #:symt)
+  (:export #:*symbol-table*
+           #:init-symbol-table
+           #:undefined-symbol
+           #:duplicate-symbol)
   (:use #:cl)
   (:shadow #:symbol-name))
 
 (in-package #:symbol-table)
+
+(defparameter *symbol-table* (init-symbol-table))
 
 (defstruct entry 
   (name  nil :type symbol-name        :read-only t)
@@ -19,8 +22,9 @@
 (deftype symbol-name ()
   '(and string (satisfies symbol-name-p)))
 
+;;; TODO switched to "re"
 (defun symbol-name-p (string)
-  (cl-ppcre:scan "^:[A-Z][A-Z0-9]*$" string))
+  (re:match-re #r/^:%u[%u%d]*$/ string))
 
 (define-condition undefined-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type symbol-name)
@@ -30,7 +34,7 @@
   ((symbol-name :initarg :symbol-name :reader symbol-name :type symbol-name)
    (table :initarg :table :reader table :type hash-table)))
 
-(defun symbol-table ()
+(defun init-symbol-table ()
   (let ((symbol-table (make-hash-table)))
     
     (lambda (function-keyword &rest inputs)
