@@ -12,14 +12,11 @@
 ;;;; Memory ::= ?
 
 (defpackage #:Y8664-parser
-  (:nicknames #:parser)
-  (:use #:cl #:parse)
+  (:export #:parse-source-line)
+  (:use #:cl #:y8664-opcode-table #:parse)
   (:import-from #:lexer #:define-lexer #:with-lexer #:with-token-reader))
 
 (in-package #:Y8664-parser)
-
-(defparameter *opcode-table* (opct:opcode-table))
-(defparameter *register-table* (regt:register-table))
 
 (defun parse-source-line (source-line)
   (with-lexer (lexer 'y8664-asm-lexer source-line)
