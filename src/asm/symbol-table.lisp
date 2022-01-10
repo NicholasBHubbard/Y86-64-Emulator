@@ -28,11 +28,13 @@
 
 (define-condition undefined-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type symbol-name)
-   (table :initarg :table :reader table :type hash-table)))
+   (table :initarg :table :reader table :type hash-table))
+  (:documentation "Condition signaled when trying to access a symbol that has not been defined."))
 
 (define-condition duplicate-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type symbol-name)
-   (table :initarg :table :reader table :type hash-table)))
+   (table :initarg :table :reader table :type hash-table))
+  (:documentation "Condition signaled when trying to redefine an existing symbol."))
 
 (defun init-symbol-table ()
   (let ((symbol-table (make-hash-table)))
