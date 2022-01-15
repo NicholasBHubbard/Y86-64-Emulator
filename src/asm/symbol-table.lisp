@@ -12,8 +12,6 @@
 
 (in-package #:symbol-table)
 
-(defparameter *symbol-table* (init-symbol-table))
-
 (defstruct entry 
   (name  nil :type symbol-name        :read-only t)
   (type  nil :type keyword            :read-only t)
@@ -76,3 +74,5 @@
            (if symbol-exists
                (entry-type (gethash symbol-name symbol-table))
                (error 'undefined-symbol :symbol-name symbol-name :table symbol-table))))))))
+
+(defparameter *symbol-table* (init-symbol-table))

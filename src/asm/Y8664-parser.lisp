@@ -23,31 +23,50 @@
     (with-token-reader (next-token lexer)
       (parse 'source-line-parser next-token))))
 
+;;; Lexer
+
 (define-lexer y8664-asm-lexer (state)
-  ("%s+"           (values :next-token $$))
-  ("#[^%n]*"       (values :eol-comment $$))
-  (","             (values :comma $$))
-  (":%u[%-%u%d]*:" (values :label $$))
-  ("0[xX][%x]+|[1-9]%d*" (values :immediate $$))
-  ("HALT|NOP|RRMOVQ|IRMOVQ|RMMOVQ|MRMOVQ|ADDQ|SUBQ|ANDQ|XORQ|JMP|JLE|JL|JE|JNE|JGE|JG|CMOVLE|CMOVL|CMOVE|CMOVNE|CMOVGE|CMOVG|CALL|RET|PUSHQ" (values :mnemonic $$))
-  ("RAX|RCX|RDX|RBX|RSP|RBP|RSI|RDI|R8|R9|R10|R11|R12|R13|R14" (values :register $$)))
+  ("%s+"
+   (values :next-token $$))
+  ("#[^%n]*"
+   (values :eol-comment $$))
+  (","
+   (values :comma $$))
+  (":%u[%-%u%d]*:"
+   (values :label $$))
+  ("0[xX][%x]+|[1-9]%d*"
+   (values :immediate $$))
+  ("HALT|NOP|RRMOVQ|IRMOVQ|RMMOVQ|MRMOVQ|ADDQ|SUBQ|ANDQ|XORQ|JMP|JLE|JL|JE|JNE|JGE|JG|CMOVLE|CMOVL|CMOVE|CMOVNE|CMOVGE|CMOVG|CALL|RET|PUSHQ"
+   (values :mnemonic $$))
+  ("RAX|RCX|RDX|RBX|RSP|RBP|RSI|RDI|R8|R9|R10|R11|R12|R13|R14"
+   (values :register $$)))
+
+;;; Main parser
 
 (define-parser source-line-parser
-  (.or (.let* ((label (.is :label))
-               (eol-comment 'eol-comment-or-eof-parser))
-         (.ret (list :label label
-                     :eol-comment eol-comment)))
-       
-       (.let* ((mn (.is :mnemonic))
-               (args (case (funcall *opcode-table* :mnemonic-type mn)
-                       (:N  'no-arg-parser)
-                       (:R  (.is :register))
-                       (:RR 'register-register-args-parser)
-                       (:IR 'immediate-register-args-parser)))
-               (eol-comment 'eol-comment-or-eof-parser))
-         (.ret (list :mnemonic mn
-                     :args args
-                     :eol-comment eol-comment)))))
+  "Parse a Y86-64 assembly language source line into a plist."
+  (.let* ((label 'maybe-label-parser)
+          (mn (.is :mnemonic))
+          (args (case (funcall *opcode-table* :mnemonic-type mn)
+                  (:N  'no-arg-parser)
+                  (:R  (.is :register))
+                  (:RR 'register-register-args-parser)
+                  (:IR 'immediate-register-args-parser)))
+          (eol-comment 'eol-comment-or-eof-parser))
+    (.ret (list :label label
+                :mnemonic mn
+                :args args
+                :eol-comment eol-comment))))
+
+;;; Helper parsers
+
+(define-parser eol-comment-or-eof-parser
+  "Parse either an eol comment or an eof."
+  (.or (.is :eol-comment) (.eof)))
+
+(define-parser maybe-label-parser
+  "Try to parse a label. If successful return the label, else return nil."
+  (.opt nil (.is :label)))
 
 (define-parser register-register-args-parser
   "Parse two register names that are separated by a comma."
@@ -63,10 +82,6 @@
           (_   (.ignore (.is :comma)))
           (reg (.is :register)))
     (.ret (list :imm imm :reg reg))))
-
-(define-parser eol-comment-or-eof-parser
-  "Parse either an eol comment or an eof."
-  (.or (.is :eol-comment) (.eof)))
 
 (define-parser no-arg-parser
   "Lookahead to ensure that that the next token is an eol comment or eof."

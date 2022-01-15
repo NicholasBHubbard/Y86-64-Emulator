@@ -7,3 +7,13 @@
 
 (in-package #:Y8664-parser-test)
 
+(def-suite y8664-parser-suite
+  :description "Test suite for the SYMBOL-TABLE package")
+
+(in-suite y8664-parser-suite)
+
+(defun run-tests ()
+  (run! 'y8664-parser-suite))
+
+;;; Tests
+

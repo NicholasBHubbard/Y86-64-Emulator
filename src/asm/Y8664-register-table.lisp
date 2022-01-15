@@ -12,8 +12,6 @@
 
 (in-package #:Y8664-register-table)
 
-(defparameter *register-table* (init-register-table))
-
 (deftype register ()
   '(member :RAX :RCX :RDX :RBX :RSP :RBP :RSI :RDI :R8 :R9 :R10 :R11 :R12 :R13 :R14 :NOREG))
 
@@ -124,3 +122,4 @@
            (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))
 
 
+(defparameter *register-table* (init-register-table))

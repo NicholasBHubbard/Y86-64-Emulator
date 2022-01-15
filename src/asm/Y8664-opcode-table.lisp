@@ -12,8 +12,6 @@
 
 (in-package #:Y8664-opcode-table)
 
-(defparameter *opcode-table* (init-opcode-table))
-
 (deftype opcode-type ()
   '(member :N :M :R :RR :IR))
 
@@ -294,3 +292,5 @@
           
           (otherwise
            (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))
+
+(defparameter *opcode-table* (init-opcode-table))
