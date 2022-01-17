@@ -48,7 +48,7 @@
   (.let* ((label 'maybe-label-parser)
           (mn (.is :mnemonic))
           (args (case (funcall *opcode-table* :mnemonic-type mn)
-                  (:N  nil)
+                  (:N  (.ret nil))
                   (:R  'single-register-arg-parser)
                   (:RR 'register-register-args-parser)
                   (:IR 'immediate-register-args-parser)))
