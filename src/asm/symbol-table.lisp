@@ -22,7 +22,7 @@
 
 ;;; TODO switched to "re"
 (defun symbol-name-p (string)
-  (re:match-re #r/^:%u[%u%d]*$/ string))
+  (re:match-re #r/^:%u[%u%d]*:$/ string))
 
 (define-condition undefined-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type symbol-name)
