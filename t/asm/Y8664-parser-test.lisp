@@ -2,7 +2,8 @@
 
 (defpackage Y8664-parser-test
   (:export #:run-tests)
-  (:use #:cl #:fiveam))
+  (:use #:cl #:fiveam)
+  (:import-from #:Y8664-parser #:parse-source-line))
 
 (in-package #:Y8664-parser-test)
 
@@ -16,3 +17,16 @@
 
 ;;; Tests
 
+(test null-arg
+  (is-true
+   (equal (parse-source-line "HALT")
+          (list :label nil :mnemonic "HALT" :args nil :eol-comment nil))))
+
+(test null-arg-eol-comment
+  (is-true
+   (equal (parse-source-line "HALT #comment")
+          (list :label nil :mnemonic "HALT" :args nil :eol-comment "#comment"))))
+
+(test single-register-arg
+  (is-true
+   (equal (parse-source-line ""))))
