@@ -60,7 +60,7 @@
            (make-entry :opcode #xA0 :mnemonic :PUSHQ  :type :R  :size  2))))
     (lambda (function-keyword &rest inputs)
       
-      ;; if an input is a string make it a keyword instead
+      ;; turn input strings into keywords so user the can choose input format
       (let ((inputs (mapcar (lambda (input)
                               (if (stringp input)
                                   (make-keyword (string-upcase input))
