@@ -19,13 +19,13 @@
 (in-package #:Y8664-parser)
 
 (defun parse-source-line (source-line)
-  (with-lexer (lexer 'y8664-asm-lexer source-line)
+  (with-lexer (lexer 'source-line-lexer source-line)
     (with-token-reader (next-token lexer)
       (parse 'source-line-parser next-token))))
 
 ;;; Lexer
 
-(define-lexer y8664-asm-lexer (state)
+(define-lexer source-line-lexer (state)
   ("%s+"
    (values :next-token $$))
   ("#[^%n]*"
@@ -48,8 +48,8 @@
   (.let* ((label 'maybe-label-parser)
           (mn (.is :mnemonic))
           (args (case (funcall *opcode-table* :mnemonic-type mn)
-                  (:N  'no-arg-parser)
-                  (:R  (.is :register))
+                  (:N  nil)
+                  (:R  'single-register-arg-parser)
                   (:RR 'register-register-args-parser)
                   (:IR 'immediate-register-args-parser)))
           (eol-comment 'eol-comment-or-eof-parser))
@@ -68,6 +68,11 @@
   "Try to parse a label. If successful return the label, else return nil."
   (.opt nil (.is :label)))
 
+(define-parser single-register-arg-parser
+  "Parse a single register name."
+  (.let (reg (.is :register))
+    (.ret (list :reg reg))))
+
 (define-parser register-register-args-parser
   "Parse two register names that are separated by a comma."
   (.let* ((src-reg (.is :register))
@@ -82,10 +87,3 @@
           (_   (.ignore (.is :comma)))
           (reg (.is :register)))
     (.ret (list :imm imm :reg reg))))
-
-(define-parser no-arg-parser
-  "Lookahead to ensure that that the next token is an eol comment or eof."
-  (.let (old-state (.get))
-    (.do 'eol-comment-or-eof-parser
-         (.put old-state)
-         (.ret nil))))
