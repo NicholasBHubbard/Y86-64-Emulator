@@ -70,7 +70,7 @@
     (.ret (list :reg reg))))
 
 (define-parser register-register-args-parser
-  "Parse two register names that are separated by a comma."
+  "Parse two register names separated by a comma."
   (.let* ((src-reg (.is :register))
           (_       (.ignore (.is :comma)))
           (dst-reg (.is :register)))
@@ -78,7 +78,7 @@
                 :dst-reg dst-reg))))
 
 (define-parser immediate-register-args-parser
-  "Parse an immediate then a register name that are separated by a comma."
+  "Parse an immediate then a register name separated by a comma."
   (.let* ((imm (.is :immediate))
           (_   (.ignore (.is :comma)))
           (reg (.is :register)))
