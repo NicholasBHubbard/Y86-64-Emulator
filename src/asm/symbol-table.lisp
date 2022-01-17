@@ -4,7 +4,7 @@
 
 (defpackage symbol-table
   (:export #:*symbol-table*
-           #:init-symbol-table
+           #:init-symbol-table ; should only be used for testing purposes
            #:undefined-symbol
            #:duplicate-symbol)
   (:use #:cl)
