@@ -34,7 +34,7 @@
    (values :comma $$))
   (":%u[%-%u%d]*:"
    (values :label $$))
-  ("0[xX][%x]+|[1-9]%d*"
+  ("0x[%x]+|[1-9]%d*"
    (values :immediate $$))
   ("HALT|NOP|RRMOVQ|IRMOVQ|RMMOVQ|MRMOVQ|ADDQ|SUBQ|ANDQ|XORQ|JMP|JLE|JL|JE|JNE|JGE|JG|CMOVLE|CMOVL|CMOVE|CMOVNE|CMOVGE|CMOVG|CALL|RET|PUSHQ"
    (values :mnemonic $$))
