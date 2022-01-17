@@ -62,7 +62,7 @@
 
 (define-parser eol-comment-or-eof-parser
   "Parse either an eol comment or an eof."
-  (.or (.is :eol-comment) (.eof)))
+  (.or (.is :eol-comment) (.ignore (.eof))))
 
 (define-parser maybe-label-parser
   "Try to parse a label. If successful return the label, else return nil."
