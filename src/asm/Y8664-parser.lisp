@@ -14,7 +14,13 @@
 (defpackage #:Y8664-parser
   (:export #:parse-source-line)
   (:use #:cl #:y8664-opcode-table #:parse)
-  (:import-from #:lexer #:define-lexer #:with-lexer #:with-token-reader))
+  (:import-from #:lexer
+                #:define-lexer
+                #:with-lexer
+                #:with-token-reader
+                #:lex-error-reason
+                #:lex-error-line
+                #:lex-error-source))
 
 (in-package #:Y8664-parser)
 
@@ -23,6 +29,12 @@
     (with-token-reader (next-token lexer)
       (parse 'source-line-parser next-token))))
 
+(defun report-lex-error (condition)
+  (format nil "reason: ~a~%line: ~a~%source: ~a~%"
+          (lex-error-reason condition)
+          (lex-error-line condition)
+          (lex-error-source condition)))
+
 ;;; Lexer
 
 (define-lexer source-line-lexer (state)
@@ -30,16 +42,22 @@
    (values :next-token $$))
   ("#[^%n]*"
    (values :eol-comment $$))
+  ("%("
+   (values :opening-paren $$))
+  ("%)"
+   (values :closing-paren $$))
   (","
    (values :comma $$))
+  ("1|2|4|8"
+   (values :scale-factor $$))
   (":%u[%-%u%d]*:"
    (values :label $$))
-  ("0x[%x]+|[1-9]%d*"
-   (values :immediate $$))
+  ("%$(%-?(0x[%x]+|[1-9]%d*))"
+   (values :immediate $1))
   ("HALT|NOP|RRMOVQ|IRMOVQ|RMMOVQ|MRMOVQ|ADDQ|SUBQ|ANDQ|XORQ|JMP|JLE|JL|JE|JNE|JGE|JG|CMOVLE|CMOVL|CMOVE|CMOVNE|CMOVGE|CMOVG|CALL|RET|PUSHQ"
    (values :mnemonic $$))
-  ("RAX|RCX|RDX|RBX|RSP|RBP|RSI|RDI|R8|R9|R10|R11|R12|R13|R14"
-   (values :register $$)))
+  ("%%(RAX|RCX|RDX|RBX|RSP|RBP|RSI|RDI|R8|R9|R10|R11|R12|R13|R14)"
+   (values :register $1)))
 
 ;;; Main parser
 
@@ -67,12 +85,12 @@
 (define-parser single-register-arg-parser
   "Parse a single register name."
   (.let (reg (.is :register))
-    (.ret (list :reg reg))))
+        (.ret (list :reg reg))))
 
 (define-parser register-register-args-parser
   "Parse two register names separated by a comma."
   (.let* ((src-reg (.is :register))
-          (_       (.ignore (.is :comma)))
+          (_       (.is :comma))
           (dst-reg (.is :register)))
     (.ret (list :src-reg src-reg
                 :dst-reg dst-reg))))
@@ -80,7 +98,7 @@
 (define-parser immediate-register-args-parser
   "Parse an immediate then a register name separated by a comma."
   (.let* ((imm (.is :immediate))
-          (_   (.ignore (.is :comma)))
+          (_   (.is :comma))
           (reg (.is :register)))
     (.ret (list :imm imm :reg reg))))
 
@@ -88,7 +106,7 @@
   "Parse either an eol comment or an eof."
   (.or (.is :eol-comment) (.ignore (.eof))))
 
-;;; Memory operand parser
+;;; Memory operand parser (see figure 3.3 in CSAPP)
 
 (define-parser memory-parser
   "Parse a memory operand."
