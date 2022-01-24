@@ -87,3 +87,54 @@
 (define-parser eol-comment-or-eof-parser
   "Parse either an eol comment or an eof."
   (.or (.is :eol-comment) (.ignore (.eof))))
+
+;;; Memory operand parser
+
+(define-parser memory-parser
+  "Parse a memory operand."
+  (.or 'absolute-memory-parser
+       'indirect-memory-parser
+       'base-plus-offset-memory-parser
+       'indexed-memory-parser
+       'scaled-indexed-memory-parser))
+
+(define-parser absolute-memory-parser
+  "Memory operand of form: $imm."
+  (.let (imm (.is :immediate))
+    (.ret (list :offset "0" :base imm :index "0" :scale "1"))))
+
+(define-parser indirect-memory-parser
+  "Memory operand of form: (%reg)."
+  (.let (reg (.between (.is :opening-paren)
+                       (.is :closing-paren)
+                       (.is :register)))
+    (.ret (list :offset "0" :base reg :index "0" :scale "1"))))
+
+(define-parser base-plus-offset-memory-parser
+  "Memory operand of form: $imm(%reg)."
+  (.let* ((offset (.is :immediate))
+          (base   (.between (.is :opening-paren)
+                            (.is :closing-paren)
+                            (.is :register))))
+    (.ret (list :offset offset :base base :index "0" :scale "1"))))
+
+(define-parser indexed-memory-parser
+  "Memory operand of form: $imm?(%reg,%reg)."
+  (.let* ((offset (.opt "0" (.is :immediate)))
+          (_      (.is :opening-paren))
+          (base   (.is :register))
+          (_      (.is :comma))
+          (index  (.is :register))
+          (_      (.is :closing-paren)))
+    (.ret (list :offset offset :base base :index index :scale "1"))))
+
+(define-parser scaled-indexed-memory-parser
+  (.let* ((offset (.opt "0" (.is :immediate)))
+          (_      (.is :opening-paren))
+          (base   (.opt "0" (.is :register)))
+          (_      (.is :comma))
+          (index  (.is :register))
+          (_      (.is :comma))
+          (scale  (.is :scale-factor))
+          (_      (.is :closing-paren)))
+    (.ret (list :offset offset :base base :index index :scale scale))))
