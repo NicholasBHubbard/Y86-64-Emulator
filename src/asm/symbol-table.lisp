@@ -5,7 +5,6 @@
 (defpackage symbol-table
   (:use #:cl)
   (:shadow #:symbol-name)
-  (:import)
   (:export #:*symbol-table*
            #:symbol-name
            #:undefined-symbol
