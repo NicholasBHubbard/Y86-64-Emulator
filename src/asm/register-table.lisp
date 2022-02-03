@@ -13,14 +13,21 @@
 
 (in-package #:register-table)
 
+;;; ==================== Types ====================
+
 (deftype register ()
   '(member :RAX :RCX :RDX :RBX :RSP :RBP :RSI :RDI :R8 :R9 :R10 :R11 :R12 :R13 :R14 :NOREG))
 
 (defstruct entry
+  "The type of a single Y86-64 register table entry."
   (id    nil :type (unsigned-byte 8) :read-only t)
   (name  nil :type register          :read-only t))
 
+;;; ==================== Register Table Definition ====================
+
 (defun init-register-table ()
+  "Used to initialize the *REGISTER-TABLE* global variable. This function should
+not be exported."
   (let ((register-table
           (list
            (make-entry :id #x0 :name :RAX)
@@ -122,5 +129,6 @@
           (otherwise
            (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))
 
-
-(defparameter *register-table* (init-register-table))
+(defparameter *register-table* (init-register-table)
+  "Lexical closure over the static Y86-64 register table that can be used to
+query information about registers.")

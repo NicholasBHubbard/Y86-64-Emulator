@@ -7,11 +7,13 @@
   (:import-from #:alexandria
                 #:curry
                 #:compose
-                #:make-keyword
-                #:mnemonic)
-  (:export #:*opcode-table*))
+                #:make-keyword)
+  (:export #:*opcode-table*
+           #:mnemonic))
 
 (in-package #:opcode-table)
+
+;;; ==================== Types ====================
 
 (deftype mnemonic ()
   `(member :HALT :NOP :RRMOVQ :IRMOVQ :RMMOVQ :MRMOVQ :ADDQ :SUBQ :ANDQ :XORQ :JMP :JLE :JL :JE :JNE :JGE :JG :CMOVLE :CMOVL :CMOVE :CMOVNE :CMOVGE :CMOVG :CALL :RET :PUSHQ))
@@ -20,17 +22,17 @@
   '(member :N :M :R :RR :IR))
 
 (defstruct entry
-  "The type for a Y86-64 OpCode Table entry. Note that this type is not exported
-   as it is for internal use only."
+  "The type for a single Y86-64 opcode table entry."
   (opcode   nil :type (unsigned-byte 8) :read-only t)
   (mnemonic nil :type mnemonic          :read-only t)
   (type     nil :type opcode-type       :read-only t)
   (size     nil :type (unsigned-byte 8) :read-only t))
 
+;;; ==================== Opcode Table Definition ====================
+
 (defun init-opcode-table ()
-  "Return a closure that closes over the static OpCode Table and returns a
-   dispatch table to query the OpCode Table in different ways. None of the query
-   functions can mutate the OpCode Table."
+  "Used to initialize the *OPCODE-TABLE* global variable. This function should
+not be exported."
   (let ((opcode-table
           (list
            (make-entry :opcode #x00 :mnemonic :HALT   :type :N  :size  1)
@@ -295,4 +297,5 @@
            (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))
 
 (defparameter *opcode-table* (init-opcode-table)
-  "Closure that can be used to query the static Y86-64 opcode table.")
+  "Lexical closure over the static Y86-64 opcode table that can be used to query
+information about the various opcodes.")

@@ -6,18 +6,27 @@
   (:use #:cl)
   (:shadow #:symbol-name)
   (:export #:*symbol-table*
+           #:symbol-name
            #:undefined-symbol
            #:duplicate-symbol))
 
 (in-package #:symbol-table)
 
-(defstruct entry 
+;;; ==================== Types ====================
+
+(defun symbol-name-p (string)
+  (cl-ppcre:scan "^[.a-zA-Z][-a-zA-Z0-9]*$" string))
+
+(deftype symbol-name ()
+  '(and string (satisfies symbol-name-p)))
+
+(defstruct entry
+  "The type of a single symbol table entry."
   (name  nil :type symbol-name        :read-only t)
   (type  nil :type keyword            :read-only t)
   (value nil :type (unsigned-byte 64) :read-only t))
 
-(deftype symbol-name ()
-  '(and string (satisfies Y8664-parser:labelp)))
+;;; ==================== Conditions ====================
 
 (define-condition undefined-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type symbol-name)
@@ -29,7 +38,11 @@
    (table :initarg :table :reader table :type hash-table))
   (:documentation "Condition signaled when trying to redefine an existing symbol."))
 
+;;; ==================== Symbol Table Definition ====================
+
 (defun init-symbol-table ()
+  "Used to initialize the *SYMBOL-TABLE* global variable. This function should
+not be exported. "
   (let ((symbol-table (make-hash-table)))
     
     (lambda (function-keyword &rest inputs)
@@ -70,4 +83,6 @@
                (entry-type (gethash symbol-name symbol-table))
                (error 'undefined-symbol :symbol-name symbol-name :table symbol-table))))))))
 
-(defparameter *symbol-table* (init-symbol-table))
+(defparameter *symbol-table* (init-symbol-table)
+  "Lexical closure over the symbol table that can be used to query and add
+symbols.")
