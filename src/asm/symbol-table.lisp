@@ -5,6 +5,7 @@
 (defpackage symbol-table
   (:use #:cl)
   (:shadow #:symbol-name)
+  (:import)
   (:export #:*symbol-table*
            #:symbol-name
            #:undefined-symbol
@@ -20,11 +21,11 @@
 (deftype symbol-name ()
   '(and string (satisfies symbol-name-p)))
 
-(defstruct entry
+(u:defstruct-read-only entry
   "The type of a single symbol table entry."
-  (name  nil :type symbol-name        :read-only t)
-  (type  nil :type keyword            :read-only t)
-  (value nil :type (unsigned-byte 64) :read-only t))
+  (name  nil :type symbol-name)
+  (type  nil :type keyword)
+  (value nil :type (unsigned-byte 64)))
 
 ;;; ==================== Conditions ====================
 

@@ -18,10 +18,10 @@
 (deftype register ()
   '(member :RAX :RCX :RDX :RBX :RSP :RBP :RSI :RDI :R8 :R9 :R10 :R11 :R12 :R13 :R14 :NOREG))
 
-(defstruct entry
+(u:defstruct-read-only entry
   "The type of a single Y86-64 register table entry."
-  (id    nil :type (unsigned-byte 8) :read-only t)
-  (name  nil :type register          :read-only t))
+  (id   nil :type (unsigned-byte 8))
+  (name nil :type register))
 
 ;;; ==================== Register Table Definition ====================
 

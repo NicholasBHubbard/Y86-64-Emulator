@@ -1,21 +1,34 @@
 (defpackage #:parser
   (:use #:cl #:maxpc)
-  (:import-from #:Y8664-opcode-table #:*opcode-table*)
-  (:import-from #:Y8664-register-table #:*register-table*)
+  (:import-from #:opcode-table #:*opcode-table*)
+  (:import-from #:register-table #:*register-table* #:register)
   (:export #:labelp))
 
 (in-package #:parser)
 
-(deftype operand ()
-  (or immediate memory register-table:register))
+;;; ==================== Types ====================
 
-(defstruct source-line
-  "Struct to carry all fields of a Y86-64 asm source line."
-  (label nil       :type symbol                :read-only t)
-  (mnemonic nil    :type opcode-table:mnemonic :read-only t)
-  (operand1 nil    :type operand               :read-only t)
-  (operand2 nil    :type operand               :read-only t)
-  (eol-comment ""  :type string                :read-only t))
+(deftype operand ()
+  '(or (signed-byte 64) memory register))
+
+(defun scalep (int)
+  (member int '(1 2 4 8) :test #'=))
+
+(u:defstruct-read-only memory
+  (offset nil :type (signed-byte 64))
+  (base   nil :type (or (signed-byte 64) register))
+  (index  nil :type (or (signed-byte 64) register))
+  (scale  1   :type (and (unsigned-byte 8) (satisfies scalep))))
+
+(u:defstruct-read-only source-line
+  "Struct to carry the fields of a Y86-64 asm source line."
+  (label nil      :type symbol-table:symbol-name)
+  (mnemonic nil   :type opcode-table:mnemonic)
+  (operand1 nil   :type operand)
+  (operand2 nil   :type operand)
+  (eol-comment "" :type string))
+
+;;; ==================== Parsers ====================
 
 (defun label ()
   (=destructure (first-char rest-chars _)
@@ -56,11 +69,10 @@
                        (=subseq (%any (?not (maxpc.char:?newline)))))
     (str:concat pound comment)))
 
-(defun null-arg-instruction ()
-  (=destructure (label mn op1 op2 eol-comment)
-                (list= (%maybe (label))
-                       (mnemonic)
-                       (immediate)
-                       ())))
+;; (defun null-arg-instruction ()
+;;   (=destructure (label mn op1 op2 eol-comment)
+;;                 (list= (%maybe (label))
+;;                        (mnemonic)
+;;                        (immediate)
+;;                        ())))
 
-(defmacro )

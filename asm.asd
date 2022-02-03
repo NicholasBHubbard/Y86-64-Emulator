@@ -5,7 +5,8 @@
   :license "MIT"
   :version "0.1"
   :depends-on ("alexandria" "cl-ppcre" "str" "maxpc")
-  :components ((:file "src/asm/opcode-table")
+  :components ((:file "src/utilities")
+               (:file "src/asm/opcode-table")
                (:file "src/asm/register-table")
                (:file "src/asm/symbol-table")
                (:file "src/asm/parser")))

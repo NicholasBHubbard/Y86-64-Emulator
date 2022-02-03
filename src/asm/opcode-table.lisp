@@ -21,12 +21,12 @@
 (deftype opcode-type ()
   '(member :N :M :R :RR :IR))
 
-(defstruct entry
+(u:defstruct-read-only entry
   "The type for a single Y86-64 opcode table entry."
-  (opcode   nil :type (unsigned-byte 8) :read-only t)
-  (mnemonic nil :type mnemonic          :read-only t)
-  (type     nil :type opcode-type       :read-only t)
-  (size     nil :type (unsigned-byte 8) :read-only t))
+  (opcode   nil :type (unsigned-byte 8))
+  (mnemonic nil :type mnemonic)
+  (type     nil :type opcode-type)
+  (size     nil :type (unsigned-byte 8)))
 
 ;;; ==================== Opcode Table Definition ====================
 
