@@ -6,7 +6,7 @@
 (in-package #:symbol-table-test)
 
 (def-suite symbol-table-suite
-  :description "Test suite for the SYMBOL-TABLE package")
+  :description "Test suite for the asm systems SYMBOL-TABLE package.")
 
 (in-suite symbol-table-suite)
 
@@ -17,8 +17,8 @@
   "Same as fiveam:test but make available a fresh lexical symbol-table named 
    SYMBOL-TABLE. The acronym wfst stands for with-fresh-symbol-table."
   `(fiveam:test ,test-name
-     (let ((symbol-table (symbol-table:init-symbol-table)))
-       ,@body)))
+                (let ((symbol-table (symbol-table::init-symbol-table)))
+                  ,@body)))
 
 ;;; Tests
 

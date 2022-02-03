@@ -2,15 +2,16 @@
 ;;;; is a lexical closure that can be used to dynamically query the static and
 ;;;; immutable Y86-64 register table.
 
-(defpackage Y8664-register-table
-  (:export #:*register-table*)
+(defpackage register-table
   (:use #:cl)
   (:import-from #:alexandria
                 #:curry
                 #:compose
-                #:make-keyword))
+                #:make-keyword)
+  (:export #:*register-table*
+           #:register))
 
-(in-package #:Y8664-register-table)
+(in-package #:register-table)
 
 (deftype register ()
   '(member :RAX :RCX :RDX :RBX :RSP :RBP :RSI :RDI :R8 :R9 :R10 :R11 :R12 :R13 :R14 :NOREG))

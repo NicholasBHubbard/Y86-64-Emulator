@@ -3,12 +3,11 @@
 ;;;; symbol table.
 
 (defpackage symbol-table
-  (:export #:*symbol-table*
-           #:init-symbol-table ; should only be used for testing purposes
-           #:undefined-symbol
-           #:duplicate-symbol)
   (:use #:cl)
-  (:shadow #:symbol-name))
+  (:shadow #:symbol-name)
+  (:export #:*symbol-table*
+           #:undefined-symbol
+           #:duplicate-symbol))
 
 (in-package #:symbol-table)
 
@@ -18,11 +17,7 @@
   (value nil :type (unsigned-byte 64) :read-only t))
 
 (deftype symbol-name ()
-  '(and string (satisfies symbol-name-p)))
-
-;;; TODO switched to "re"
-(defun symbol-name-p (string)
-  (re:match-re #r/^:%u[%u%d]*:$/ string))
+  '(and string (satisfies Y8664-parser:labelp)))
 
 (define-condition undefined-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type symbol-name)

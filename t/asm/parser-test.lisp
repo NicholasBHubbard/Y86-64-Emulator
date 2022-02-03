@@ -1,19 +1,19 @@
-;;;; Testing for the definitions in src/asm/Y8664-parser.lisp
+;;;; Testing for the definitions in src/asm/parser.lisp
 
-(defpackage Y8664-parser-test
+(defpackage parser-test
   (:export #:run-tests)
   (:use #:cl #:fiveam)
-  (:import-from #:Y8664-parser #:parse-source-line))
+  (:import-from #:parser #:parse-source-line))
 
-(in-package #:Y8664-parser-test)
+(in-package #:parser-test)
 
-(def-suite y8664-parser-suite
-  :description "Test suite for the Y8664-PARSER package")
+(def-suite parser-suite
+  :description "Test suite for the asm systems PARSER package.")
 
-(in-suite y8664-parser-suite)
+(in-suite parser-suite)
 
 (defun run-tests ()
-  (run! 'y8664-parser-suite))
+  (run! 'parser-suite))
 
 ;;; Tests
 

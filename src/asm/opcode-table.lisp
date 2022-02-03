@@ -2,21 +2,22 @@
 ;;;; is a lexical closure that can be used to dynamically query the static and
 ;;;; immutable Y86-64 opcode table.
 
-(defpackage #:Y8664-opcode-table
-  (:export #:*opcode-table*)
+(defpackage #:opcode-table
   (:use #:cl)
   (:import-from #:alexandria
                 #:curry
                 #:compose
-                #:make-keyword))
+                #:make-keyword
+                #:mnemonic)
+  (:export #:*opcode-table*))
 
-(in-package #:Y8664-opcode-table)
-
-(deftype opcode-type ()
-  '(member :N :M :R :RR :IR))
+(in-package #:opcode-table)
 
 (deftype mnemonic ()
   `(member :HALT :NOP :RRMOVQ :IRMOVQ :RMMOVQ :MRMOVQ :ADDQ :SUBQ :ANDQ :XORQ :JMP :JLE :JL :JE :JNE :JGE :JG :CMOVLE :CMOVL :CMOVE :CMOVNE :CMOVGE :CMOVG :CALL :RET :PUSHQ))
+
+(deftype opcode-type ()
+  '(member :N :M :R :RR :IR))
 
 (defstruct entry
   "The type for a Y86-64 OpCode Table entry. Note that this type is not exported
@@ -293,4 +294,5 @@
           (otherwise
            (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))
 
-(defparameter *opcode-table* (init-opcode-table))
+(defparameter *opcode-table* (init-opcode-table)
+  "Closure that can be used to query the static Y86-64 opcode table.")

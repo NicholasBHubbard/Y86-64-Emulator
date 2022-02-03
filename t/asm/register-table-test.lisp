@@ -1,20 +1,20 @@
-(defpackage Y8664-register-table-test
+(defpackage register-table-test
   (:export #:run-tests)
   (:use #:cl #:fiveam)
-  (:import-from #:y8664-register-table #:*register-table*)
+  (:import-from #:register-table #:*register-table*)
   (:import-from #:alexandria
                 #:compose
                 #:curry))
 
-(in-package #:Y8664-register-table-test)
+(in-package #:register-table-test)
 
-(def-suite Y8664-register-table-suite
-  :description "Test suite for the Y8664-register-table package")
+(def-suite register-table-suite
+  :description "Test suite for the asm systems REGISTER-TABLE package.")
 
-(in-suite Y8664-register-table-suite)
+(in-suite register-table-suite)
 
 (defun run-tests ()
-  (run! 'Y8664-register-table-suite))
+  (run! 'register-table-suite))
 
 ;;; Define special variables to help avoid writing boilerplate code in the
 ;;; actual tests.

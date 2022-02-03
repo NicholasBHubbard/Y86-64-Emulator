@@ -1,26 +1,26 @@
-;;;; Test the Y8664-opcode-table package. This package exports one function
-;;;; which is OPCODE-TABLE. This function returns a closure that closes over the
-;;;; static Y86-64 OpCode Table, and provides a dispatch table for querying the
-;;;; OpCode Table in various different ways. This test suite will test all of
-;;;; the query functions.
+;;;; Test the opcode-table package. This package exports one function which is
+;;;; OPCODE-TABLE. This function returns a closure that closes over the static
+;;;; Y86-64 OpCode Table, and provides a dispatch table for querying the OpCode
+;;;; Table in various different ways. This test suite will test all of the query
+;;;; functions.
 
-(defpackage Y8664-opcode-table-test
+(defpackage opcode-table-test
   (:export #:run-tests)
   (:use #:cl #:fiveam)
-  (:import-from #:y8664-opcode-table #:*opcode-table*)
+  (:import-from #:opcode-table #:*opcode-table*)
   (:import-from #:alexandria
                 #:compose
                 #:curry))
 
-(in-package #:Y8664-opcode-table-test)
+(in-package #:opcode-table-test)
 
-(def-suite Y8664-opcode-table-suite
-  :description "Test suite for the Y8664-opcode-table package")
+(def-suite opcode-table-suite
+  :description "Test suite for the asm systems OPCODE-TABLE package.")
 
-(in-suite Y8664-opcode-table-suite)
+(in-suite opcode-table-suite)
 
 (defun run-tests ()
-  (run! 'Y8664-opcode-table-suite))
+  (run! 'opcode-table-suite))
 
 ;;; Define special variables to help avoid writing boilerplate code in the
 ;;; actual tests.
