@@ -6,8 +6,7 @@
   (:use #:cl)
   (:import-from #:alexandria
                 #:curry
-                #:compose
-                #:make-keyword)
+                #:compose)
   (:export #:*opcode-table*
            #:mnemonic))
 
@@ -19,6 +18,12 @@
   `(member :HALT :NOP :RRMOVQ :IRMOVQ :RMMOVQ :MRMOVQ :ADDQ :SUBQ :ANDQ :XORQ :JMP :JLE :JL :JE :JNE :JGE :JG :CMOVLE :CMOVL :CMOVE :CMOVNE :CMOVGE :CMOVG :CALL :RET :PUSHQ))
 
 (deftype opcode-type ()
+  "The operand type of a Y86-64 mnemonic.
+:N  -> Null operand 
+:M  -> Memory operand 
+:R  -> Register operand
+:RR -> Register,Register operand
+:IR -> Immediate,Register operand"
   '(member :N :M :R :RR :IR))
 
 (u:defstruct-read-only entry
@@ -66,7 +71,7 @@ not be exported."
       ;; turn input strings into keywords so user the can choose input format
       (let ((inputs (mapcar (lambda (input)
                               (if (stringp input)
-                                  (make-keyword (string-upcase input))
+                                  (u:make-keyword input)
                                   input))
                             inputs)))
         
@@ -227,6 +232,7 @@ not be exported."
               (entry-size
                (find-if
                 (compose (curry #'eql (first inputs)) #'entry-mnemonic)
+
                 opcode-table))))
           
           (:type-mnemonics

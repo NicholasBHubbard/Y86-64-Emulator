@@ -6,8 +6,7 @@
   (:use #:cl)
   (:import-from #:alexandria
                 #:curry
-                #:compose
-                #:make-keyword)
+                #:compose)
   (:export #:*register-table*
            #:register))
 
@@ -21,7 +20,8 @@
 (u:defstruct-read-only entry
   "The type of a single Y86-64 register table entry."
   (id   nil :type (unsigned-byte 8))
-  (name nil :type register))
+  (name nil :type register)
+  (value 0))
 
 ;;; ==================== Register Table Definition ====================
 
@@ -52,7 +52,7 @@ not be exported."
       ;; turn input strings into keywords so user the can choose input format
       (let ((inputs (mapcar (lambda (input)
                               (if (stringp input)
-                                  (make-keyword (string-upcase input))
+                                  (u:make-keyword input)
                                   input))
                             inputs)))
         
@@ -127,7 +127,7 @@ not be exported."
                   register-table))))
 
           (otherwise
-           (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))
+           (error 'internal (format nil "The symbol ~a does not denote a valid *REGISTER-TABLE* function" function-keyword))))))))
 
 (defparameter *register-table* (init-register-table)
   "Lexical closure over the static Y86-64 register table that can be used to
