@@ -9,4 +9,5 @@
                (:file "src/asm/opcode-table")
                (:file "src/asm/register-table")
                (:file "src/asm/symbol-table")
-               (:file "src/asm/parser")))
+               (:file "src/asm/parser")
+               (:file "src/asm/assembler")))
