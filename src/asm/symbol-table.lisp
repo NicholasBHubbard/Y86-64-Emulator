@@ -6,6 +6,7 @@
   (:use #:cl)
   (:shadow #:symbol-name)
   (:export #:*symbol-table*
+           #:symbol-name-p
            #:symbol-name
            #:undefined-symbol
            #:duplicate-symbol))
@@ -14,8 +15,9 @@
 
 ;;; ==================== Types ====================
 
-(defun symbol-name-p (string)
-  (cl-ppcre:scan "^[.a-zA-Z][-a-zA-Z0-9]*$" string))
+(let ((regex (cl-ppcre:create-scanner "^[.a-zA-Z][-a-zA-Z0-9]*$")))
+  (defun symbol-name-p (string)
+    (u:as-bool (cl-ppcre:scan regex string))))
 
 (deftype symbol-name ()
   '(and string (satisfies symbol-name-p)))
