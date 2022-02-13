@@ -141,7 +141,7 @@ string."
   "Parse a Y86-64 mnemonic."
   (=as-keyword
    (=satisfies
-       (lambda (x) (funcall *opcode-table* :mnemonic-p x))
+       (a:curry #'funcall *opcode-table* :mnemonic-p)
        (%some-string (=satisfies #'alpha-char-p)))))
 
 (defun =register ()
@@ -149,8 +149,7 @@ string."
   (=as-keyword
    (=progn (?eq #\%)
            (=satisfies
-               (lambda (string)
-                 (funcall *register-table* :register-name-p string))
+               (a:curry #'funcall *register-table* :register-name-p)
                (%some-string (=satisfies #'alphanumericp))))))
 
 (defun =immediate ()
