@@ -131,12 +131,16 @@ string."
 
 ;;; ==================== Basic Grammar Elements ====================
 
+(defun =symbol-name ()
+  "Parser for symbol names."
+  (=satisfies #'symbol-table:symbol-name-p
+      (%some-string (%or (=eq #\.)
+                         (=eq #\-)
+                         (=satisfies #'alphanumericp)))))
+
 (defun =label ()
-  "Parser for labels."
-  (%let* ((first-char (%or (=eq #\.) (=satisfies #'alpha-char-p)))
-          (rest-chars (%some-string (%or (=eq #\-) (=satisfies #'alphanumericp))))
-          (_ (?eq #\:)))
-    (concatenate 'string first-char rest-chars)))
+  "Parser for labels. Labels are symbol names followed by a colon."
+  (=prog1 (=symbol-name) (?eq #\:)))
 
 (defun =mnemonic ()
   "Parse a Y86-64 mnemonic."
