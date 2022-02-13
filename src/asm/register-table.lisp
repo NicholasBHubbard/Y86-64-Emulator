@@ -4,9 +4,7 @@
 
 (defpackage register-table
   (:use #:cl)
-  (:import-from #:alexandria
-                #:curry
-                #:compose)
+  (:local-nicknames (#:a #:alexandria))
   (:export #:*register-table*
            #:register))
 
@@ -79,27 +77,27 @@ not be exported."
           (:all-id-strings
            ;; like :ALL-IDS except stringify the ids
            (sort (mapcar
-                  (compose (curry #'format nil "~x") #'entry-id)
+                  (a:compose (a:curry #'format nil "~x") #'entry-id)
                   register-table)
                  #'string<))
           
           (:all-register-name-strings
            ;; like :ALL-REGISTER-NAMES except stringify the register names
-           (sort (mapcar (compose #'symbol-name #'entry-name) register-table)
+           (sort (mapcar (a:compose #'symbol-name #'entry-name) register-table)
                  #'string<))
           
           (:id-register-name
            ;; the register name associated to the id (FIRST INPUTS)
            (entry-name
             (find-if
-             (compose (curry #'= (first inputs)) #'entry-id)
+             (a:compose (a:curry #'= (first inputs)) #'entry-id)
              register-table)))
           
           (:register-name-id
            ;; the id of the register named (FIRST INPUTS)
            (entry-id
             (find-if
-             (compose (curry #'eql (first inputs)) #'entry-name)
+             (a:compose (a:curry #'eql (first inputs)) #'entry-name)
              register-table)))
           
           (:id-register-name-string
@@ -107,7 +105,7 @@ not be exported."
            (symbol-name
             (entry-name
              (find-if
-              (compose (curry #'= (first inputs)) #'entry-id)
+              (a:compose (a:curry #'= (first inputs)) #'entry-id)
               register-table))))
           
           (:register-name-id-string
@@ -115,7 +113,7 @@ not be exported."
            (format nil "~x"
                    (entry-id
                     (find-if
-                     (compose (curry #'eql (first inputs)) #'entry-name)
+                     (a:compose (a:curry #'eql (first inputs)) #'entry-name)
                      register-table))))
 
           (:id-register-name-match-p
@@ -123,7 +121,7 @@ not be exported."
            (eql (second inputs)
                 (entry-name
                  (find-if
-                  (compose (curry #'= (first inputs)) #'entry-id)
+                  (a:compose (a:curry #'= (first inputs)) #'entry-id)
                   register-table))))
 
           (otherwise

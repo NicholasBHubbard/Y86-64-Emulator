@@ -4,9 +4,7 @@
 
 (defpackage #:opcode-table
   (:use #:cl)
-  (:import-from #:alexandria
-                #:curry
-                #:compose)
+  (:local-nicknames (#:a #:alexandria))
   (:export #:*opcode-table*
            #:mnemonic))
 
@@ -107,60 +105,60 @@ not be exported."
           (:all-opcode-strings
            ;; like :ALL-OPCODES but stringify the opcodes
            (sort (mapcar
-                  (compose (curry #'format nil "~x") #'entry-opcode)
+                  (a:compose (a:curry #'format nil "~x") #'entry-opcode)
                   opcode-table)
                  #'string<))
           
           (:all-mnemonic-strings
            ;; like :ALL-MNEMONICS but stringify the mnemonics
-           (sort (mapcar (compose #'symbol-name #'entry-mnemonic) opcode-table) #'string<))
+           (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic) opcode-table) #'string<))
           
           (:all-type-strings
            ;; like :ALL-TYPES but stringify the types
            (sort (remove-duplicates
-                  (mapcar (compose #'symbol-name #'entry-type) opcode-table))
+                  (mapcar (a:compose #'symbol-name #'entry-type) opcode-table))
                  #'string<))
           
           (:opcode-mnemonic
            ;; the mnemonic that has the opcode (FIRST INPUTS)
            (entry-mnemonic
             (find-if
-             (compose (curry #'= (first inputs)) #'entry-opcode)
+             (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
              opcode-table)))
           
           (:opcode-type
            ;; the type of the opcode (FIRST INPUTS)
            (entry-type
             (find-if
-             (compose (curry #'= (first inputs)) #'entry-opcode)
+             (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
              opcode-table))) 
 
           (:opcode-size
            ;; the size of the opcode (FIRST INPUTS)
            (entry-size
             (find-if
-             (compose (curry #'= (first inputs)) #'entry-opcode)
+             (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
              opcode-table)))
           
           (:mnemonic-opcode
            ;; the code of the mnemonic (FIRST INPUTS)
            (entry-opcode
             (find-if
-             (compose (curry #'eql (first inputs)) #'entry-mnemonic)
+             (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
              opcode-table)))
           
           (:mnemonic-type
            ;; the type of the mnemonic (FIRST INPUTS)
            (entry-type
             (find-if
-             (compose (curry #'eql (first inputs)) #'entry-mnemonic)
+             (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
              opcode-table)))
 
           (:mnemonic-size
            ;; the size of a the mnemonic (FIRST INPUTS)
            (entry-size
             (find-if
-             (compose (curry #'eql (first inputs)) #'entry-mnemonic)
+             (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
              opcode-table)))
           
           (:opcode-mnemonic-string
@@ -168,7 +166,7 @@ not be exported."
            (symbol-name
             (entry-mnemonic
              (find-if
-              (compose (curry #'= (first inputs)) #'entry-opcode)
+              (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
               opcode-table))))
           
           (:opcode-type-string
@@ -176,7 +174,7 @@ not be exported."
            (symbol-name
             (entry-type
              (find-if
-              (compose (curry #'= (first inputs)) #'entry-opcode)
+              (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
               opcode-table))))
           
           (:mnemonic-opcode-string
@@ -184,7 +182,7 @@ not be exported."
            (format nil "~x"
                    (entry-opcode
                     (find-if
-                     (compose (curry #'eql (first inputs)) #'entry-mnemonic)
+                     (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
                      opcode-table))))
           
           (:mnemonic-type-string
@@ -192,7 +190,7 @@ not be exported."
            (symbol-name
             (entry-type
              (find-if
-              (compose (curry #'eql (first inputs)) #'entry-mnemonic)
+              (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
               opcode-table))))
           
           (:opcode-mnemonic-match-p
@@ -200,7 +198,7 @@ not be exported."
            (eql (second inputs)
                 (entry-mnemonic
                  (find-if
-                  (compose (curry #'= (first inputs)) #'entry-opcode)
+                  (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
                   opcode-table))))
 
           (:opcode-type-match-p
@@ -208,14 +206,14 @@ not be exported."
            (eql (second inputs)
                 (entry-type
                  (find-if
-                  (compose (curry #'= (first inputs)) #'entry-opcode)
+                  (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
                   opcode-table))))
 
           (:opcode-size-match-p
            ;; T iff the opcode (FIRST INPUTS) has size (SECOND-INPUTS)
            (= (second inputs)
               (entry-size
-               (find-if (compose (curry #'= (first inputs)) #'entry-opcode)
+               (find-if (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
                         opcode-table))))
           
           (:mnemonic-type-match-p
@@ -223,7 +221,7 @@ not be exported."
            (eql (second inputs)
                 (entry-type
                  (find-if
-                  (compose (curry #'eql (first inputs)) #'entry-mnemonic)
+                  (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
                   opcode-table))))
 
           (:mnemonic-size-match-p
@@ -231,7 +229,7 @@ not be exported."
            (= (second inputs)
               (entry-size
                (find-if
-                (compose (curry #'eql (first inputs)) #'entry-mnemonic)
+                (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
 
                 opcode-table))))
           
@@ -239,7 +237,7 @@ not be exported."
            ;; list of all the mnemonics that have the type (FIRST INPUTS)
            (sort (mapcar #'entry-mnemonic
                          (remove-if-not
-                          (compose (curry #'eql (first inputs)) #'entry-type)
+                          (a:compose (a:curry #'eql (first inputs)) #'entry-type)
                           opcode-table))
                  #'string<))
           
@@ -247,23 +245,23 @@ not be exported."
            ;; list of all the opcodes that have the type (FIRST INPUTS)
            (sort (mapcar #'entry-opcode
                          (remove-if-not
-                          (compose (curry #'eql (first inputs)) #'entry-type)
+                          (a:compose (a:curry #'eql (first inputs)) #'entry-type)
                           opcode-table))
                  #'<))
           
           (:type-mnemonic-strings
            ;; like :TYPE-MNEMONICS but stringify the mnemonics
-           (sort (mapcar (compose #'symbol-name #'entry-mnemonic)
+           (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic)
                          (remove-if-not
-                          (compose (curry #'eql (first inputs)) #'entry-type)
+                          (a:compose (a:curry #'eql (first inputs)) #'entry-type)
                           opcode-table))
                  #'string<)) 
 
           (:type-opcode-strings
            ;; like :TYPE-OPCODES except stringify the opcodes
-           (sort (mapcar (compose (curry #'format nil "~x") #'entry-opcode)
+           (sort (mapcar (a:compose (a:curry #'format nil "~x") #'entry-opcode)
                          (remove-if-not
-                          (compose (curry #'eql (first inputs)) #'entry-type)
+                          (a:compose (a:curry #'eql (first inputs)) #'entry-type)
                           opcode-table))
                  #'string<))
           
@@ -271,7 +269,7 @@ not be exported."
            ;; list of all the opcodes that have size (FIRST INPUTS)
            (sort (mapcar #'entry-opcode
                          (remove-if-not
-                          (compose (curry #'= (first inputs)) #'entry-size)
+                          (a:compose (a:curry #'= (first inputs)) #'entry-size)
                           opcode-table))
                  #'<))
           
@@ -279,23 +277,23 @@ not be exported."
            ;; list of all the mnemonics that have size (FIRST INPUTS)
            (sort (mapcar #'entry-mnemonic
                          (remove-if-not
-                          (compose (curry #'= (first inputs)) #'entry-size)
+                          (a:compose (a:curry #'= (first inputs)) #'entry-size)
                           opcode-table))
                  #'string<)) 
 
           (:size-opcode-strings
            ;; like :SIZE-OPCODES except stringify the opcodes
-           (sort (mapcar (compose (curry #'format nil "~x") #'entry-opcode)
+           (sort (mapcar (a:compose (a:curry #'format nil "~x") #'entry-opcode)
                          (remove-if-not
-                          (compose (curry #'= (first inputs)) #'entry-size)
+                          (a:compose (a:curry #'= (first inputs)) #'entry-size)
                           opcode-table))
                  #'string<))
           
           (:size-mnemonic-strings
            ;; like :SIZE-MNEMONICS except stringify the mnemonics
-           (sort (mapcar (compose #'symbol-name #'entry-mnemonic)
+           (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic)
                          (remove-if-not
-                          (compose (curry #'= (first inputs)) #'entry-size)
+                          (a:compose (a:curry #'= (first inputs)) #'entry-size)
                           opcode-table))
                  #'string<))
           
