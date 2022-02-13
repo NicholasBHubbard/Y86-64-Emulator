@@ -4,7 +4,8 @@
   (:use #:cl #:maxpc #:maxpc.char #:maxpc.digit)
   (:import-from #:opcode-table #:*opcode-table*)
   (:import-from #:register-table #:*register-table* #:register)
-  (:local-nicknames (#:a #:alexandria)))
+  (:local-nicknames (#:a #:alexandria))
+  (:export #:parse-source-line))
 
 (in-package #:parser)
 
