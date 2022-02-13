@@ -4,7 +4,8 @@
   (:local-nicknames (#:a #:alexandria))
   (:export #:const
            #:make-keyword
-           #:defstruct-read-only))
+           #:defstruct-read-only
+           #:as-bool))
 
 (in-package #:utilities)
 
@@ -34,3 +35,10 @@
            ,@(append-read-only (rest options)))
         `(defstruct ,name
            ,@(append-read-only options)))))
+
+;;; ===============================================
+
+(defmacro as-bool (expression)
+  "T if the evaluation of EXPRESSION results in a true generalized boolean and 
+NIL otherwise."
+  `(if ,expression t nil))
