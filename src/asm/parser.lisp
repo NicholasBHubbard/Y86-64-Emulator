@@ -5,7 +5,8 @@
   (:import-from #:opcode-table #:*opcode-table*)
   (:import-from #:register-table #:*register-table* #:register)
   (:local-nicknames (#:a #:alexandria))
-  (:export #:parse-source-line))
+  (:export #:parse-source-line
+           #:parse-failure))
 
 (in-package #:parser)
 
@@ -239,7 +240,7 @@ signal a PARSE-FAILURE condition."
 (defun =indirect-memory ()
   "Parse an indirect memory address into a MEMORY struct."
   (=transform (=register)
-              (lambda (reg) (make-memory :base reg))))
+              (lambda (reg) (make-memory :offset reg))))
 
 (defun =base-displacement-memory ()
   "Parse a base+displacement memory address into a MEMORY struct."
