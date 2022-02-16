@@ -240,7 +240,7 @@ signal a PARSE-FAILURE condition."
 (defun =indirect-memory ()
   "Parse an indirect memory address into a MEMORY struct."
   (=transform (=register)
-              (lambda (reg) (make-memory :offset reg))))
+              (lambda (reg) (make-memory :base reg))))
 
 (defun =base-displacement-memory ()
   "Parse a base+displacement memory address into a MEMORY struct."
