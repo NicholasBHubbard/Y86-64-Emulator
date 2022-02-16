@@ -258,7 +258,7 @@ signal a PARSE-FAILURE condition."
           (_ (?eq #\,))
           (index (=register))
           (_ (?eq #\))))
-    (make-memory :offset offset :base base :index index)))
+    (make-memory :offset (or offset 0) :base base :index index)))
 
 (defun =scaled-indexed-memory ()
   "Parse a scaled indexed memory address into a MEMORY struct."
