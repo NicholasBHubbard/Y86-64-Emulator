@@ -46,10 +46,8 @@
   "Used to initialize the *SYMBOL-TABLE* global variable. This function should
 not be exported. "
   (let ((symbol-table (make-hash-table)))
-    
     (lambda (function-keyword &rest inputs)
       (case function-keyword
-        
         (:entry-p
          ;; T iff (FIRST INPUTS) is the name of an entry in SYMBOL-TABLE
          (nth-value 1 (gethash (first inputs) symbol-table)))

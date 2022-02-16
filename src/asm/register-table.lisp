@@ -44,18 +44,14 @@ not be exported."
            (make-entry :id #xD :name :R13)
            (make-entry :id #xE :name :R14)
            (make-entry :id #xF :name :NOREG))))
-    
     (lambda (function-keyword &rest inputs)
-      
       ;; turn input strings into keywords so user the can choose input format
       (let ((inputs (mapcar (lambda (input)
                               (if (stringp input)
                                   (u:make-keyword input)
                                   input))
                             inputs)))
-        
         (case function-keyword
-          
           (:id-p
            ;; T iff (FIRST INPUTS) is a valid Y86-64 register id
            (if (member (first inputs) (mapcar #'entry-id register-table) :test #'=)

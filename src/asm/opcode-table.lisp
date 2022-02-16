@@ -65,7 +65,6 @@ not be exported."
            (make-entry :opcode #x90 :mnemonic :RET    :type :N  :size  1)
            (make-entry :opcode #xA0 :mnemonic :PUSHQ  :type :R  :size  2))))
     (lambda (function-keyword &rest inputs)
-      
       ;; turn input strings into keywords so user the can choose input format
       (let ((inputs (mapcar (lambda (input)
                               (if (stringp input)
@@ -74,7 +73,6 @@ not be exported."
                             inputs)))
         
         (case function-keyword
-          
           (:opcode-p
            ;; T iff (FIRST INPUTS) is a Y86-64 opcode
            (if (member (first inputs) (mapcar #'entry-opcode opcode-table) :test #'=)
