@@ -16,7 +16,7 @@
 
 (defun parse-source-line (input-string)
   (let ((*source-line* input-string))
-    (parse input-string (=source-line-parser))))
+    (parse input-string (=source-line))))
 
 ;;; ==================== Parse Failure Condition ====================
 
@@ -175,7 +175,7 @@ string."
 
 ;;; ==================== Source line Parser ====================
 
-(defun =source-line-parser ()
+(defun =source-line ()
   "Parse a source line and on success return a SOURCE-LINE struct and on failure
 signal a PARSE-FAILURE condition."
   (%let* ((label (%maybe (=label)))
