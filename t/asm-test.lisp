@@ -13,4 +13,5 @@
   (progn
     (symbol-table-test:run-tests)
     (register-table-test:run-tests)
-    (opcode-table-test:run-tests)))
+    (opcode-table-test:run-tests)
+    (parser-test:run-tests)))
