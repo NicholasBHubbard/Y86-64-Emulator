@@ -24,30 +24,30 @@
 
 (test-wfst entry-p-and-insert  
   (is-true (progn
-             (funcall symbol-table :insert "FOO:" :U 0)
-             (funcall symbol-table :entry-p "FOO:"))))
+             (funcall symbol-table :insert "FOO" :U 0)
+             (funcall symbol-table :entry-p "FOO"))))
 
 (test-wfst entry-p-false
-  (is-false (funcall symbol-table :entry-p "FOO:")))
+  (is-false (funcall symbol-table :entry-p "FOO")))
 
 (test-wfst insert-signals-duplicate-symbol
   (signals symbol-table:duplicate-symbol
     (progn
-      (funcall symbol-table :insert "FOO:" :U 0)
-      (funcall symbol-table :insert "FOO:" :U 1000))))
+      (funcall symbol-table :insert "FOO" :U 0)
+      (funcall symbol-table :insert "FOO" :U 1000))))
 
 (test-wfst symbol-value
   (is-true (progn
-             (funcall symbol-table :insert "FOO:" :U 12)
-             (= 12 (funcall symbol-table :symbol-value "FOO:")))))
+             (funcall symbol-table :insert "FOO" :U 12)
+             (= 12 (funcall symbol-table :symbol-value "FOO")))))
 
 (test-wfst symbol-value-signals-undefined-symbol
-  (signals symbol-table:undefined-symbol (funcall symbol-table :symbol-value "FOO:")))
+  (signals symbol-table:undefined-symbol (funcall symbol-table :symbol-value "FOO")))
 
 (test-wfst symbol-type
   (is-true (progn
-             (funcall symbol-table :insert "FOO:" :U 0)
-             (eql :U (funcall symbol-table :symbol-type "FOO:")))))
+             (funcall symbol-table :insert "FOO" :U 0)
+             (eql :U (funcall symbol-table :symbol-type "FOO")))))
 
 (test-wfst symbol-type-signals-undefined-symbol
-  (signals symbol-table:undefined-symbol (funcall symbol-table :symbol-type "FOO:")))
+  (signals symbol-table:undefined-symbol (funcall symbol-table :symbol-type "FOO")))
