@@ -33,8 +33,9 @@
 
 ;;; ==================== Types ====================
 
-(defun scalep (int)
-  (member int '(1 2 4 8) :test #'=))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun scalep (int)
+    (member int '(1 2 4 8) :test #'=)))
 
 (u:defstruct-read-only memory
   "Type of a Y86-64 memory operand."
