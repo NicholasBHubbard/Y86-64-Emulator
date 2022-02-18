@@ -7,7 +7,6 @@
   (:shadow #:symbol-name)
   (:export #:*symbol-table*
            #:symbol-name-p
-           #:symbol-name
            #:undefined-symbol
            #:duplicate-symbol))
 
@@ -19,12 +18,9 @@
   (defun symbol-name-p (string)
     (u:as-bool (cl-ppcre:scan regex string))))
 
-(deftype symbol-name ()
-  '(and string (satisfies symbol-name-p)))
-
 (u:defstruct-read-only entry
   "The type of a single symbol table entry."
-  (name  nil :type symbol-name)
+  (name  nil :type (satisfies symbol-name-p))
   (type  nil :type keyword)
   (value nil :type (unsigned-byte 64)))
 
