@@ -18,8 +18,7 @@
 (u:defstruct-read-only entry
   "The type of a single Y86-64 register table entry."
   (id   nil :type (unsigned-byte 8))
-  (name nil :type register)
-  (value 0))
+  (name nil :type register))
 
 ;;; ==================== Register Table Definition ====================
 
