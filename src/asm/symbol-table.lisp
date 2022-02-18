@@ -44,7 +44,7 @@
 
 (defun init-symbol-table ()
   "Used to initialize the *SYMBOL-TABLE* global variable. This function should
-not be exported. "
+not be exported."
   (let ((symbol-table (make-hash-table)))
     (lambda (function-keyword &rest inputs)
       (case function-keyword
