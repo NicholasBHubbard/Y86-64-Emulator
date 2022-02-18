@@ -49,7 +49,7 @@ not be exported. "
     (lambda (function-keyword &rest inputs)
       (case function-keyword
         (:entry-p
-         ;; T iff (FIRST INPUTS) is the name of an entry in SYMBOL-TABLE
+         ;; T iff (FIRST INPUTS) is the name of an entry in SYMBOL-TABLE.
          (nth-value 1 (gethash (first inputs) symbol-table)))
         
         (:insert
@@ -76,12 +76,19 @@ not be exported. "
                (error 'undefined-symbol :symbol-name symbol-name :table symbol-table))))
         
         (:symbol-type
-         ;; The type of the symbol named (FIRST INPUTS)
+         ;; The type of the symbol named (FIRST INPUTS).
          (let* ((symbol-name (first inputs))
                 (symbol-exists (nth-value 1 (gethash symbol-name symbol-table))))
            (if symbol-exists
                (entry-type (gethash symbol-name symbol-table))
-               (error 'undefined-symbol :symbol-name symbol-name :table symbol-table))))))))
+               (error 'undefined-symbol :symbol-name symbol-name :table symbol-table))))
+
+        (:clear-table
+         ;; Reset SYMBOL-TABLE to an empty hash.
+         (setf symbol-table (make-hash-table)))
+
+        (otherwise
+         (error 'internal (format nil "The symbol ~a does not denote a valid *REGISTER-TABLE* function" function-keyword)))))))
 
 (defparameter *symbol-table* (init-symbol-table)
   "Lexical closure over the symbol table that can be used to query and add
