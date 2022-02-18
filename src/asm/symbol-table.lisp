@@ -83,7 +83,7 @@
          (setf symbol-table (make-hash-table)))
 
         (otherwise
-         (error 'internal (format nil "The symbol ~a does not denote a valid *REGISTER-TABLE* function" function-keyword)))))))
+         (error 'internal (format nil "The symbol ~a does not denote a valid *SYMBOL-TABLE* function" function-keyword)))))))
 
 (defparameter *symbol-table* (init-symbol-table)
   "Lexical closure over the symbol table that can be used to query and add
