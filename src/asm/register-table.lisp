@@ -24,8 +24,7 @@
 ;;; ==================== Register Table Definition ====================
 
 (defun init-register-table ()
-  "Used to initialize the *REGISTER-TABLE* global variable. This function should
-not be exported."
+  "Initialize the *REGISTER-TABLE* global closure variable."
   (let ((register-table
           (list
            (make-entry :id #x0 :name :RAX)

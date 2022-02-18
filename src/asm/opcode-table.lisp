@@ -34,8 +34,7 @@
 ;;; ==================== Opcode Table Definition ====================
 
 (defun init-opcode-table ()
-  "Used to initialize the *OPCODE-TABLE* global variable. This function should
-not be exported."
+  "Initialize the *OPCODE-TABLE* global closure variable."
   (let ((opcode-table
           (list
            (make-entry :opcode #x00 :mnemonic :HALT   :type :N  :size  1)
