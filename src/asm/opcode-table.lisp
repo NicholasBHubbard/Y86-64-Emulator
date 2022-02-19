@@ -6,7 +6,8 @@
   (:use #:cl)
   (:local-nicknames (#:a #:alexandria))
   (:export #:*opcode-table*
-           #:mnemonic))
+           #:mnemonic
+           #:opcode-type))
 
 (in-package #:opcode-table)
 
