@@ -15,8 +15,11 @@
 
 (defvar *source-line* nil)
 
-(defun parse-source-line (input-string)
-  (let ((*source-line* input-string))
+(defparameter *line-number* nil)
+
+(defun parse-source-line (input-string line-number)
+  (let ((*source-line* input-string)
+        (*line-number* line-number))
     (parse input-string (=source-line))))
 
 (defun parse-success-p (input parser)
@@ -31,13 +34,14 @@ of INPUT. NIL otherwise."
 (define-condition parse-failure (error)
   ((input-string  :initarg :input-string  :reader input-string  :type string)
    (fail-position :initarg :fail-position :reader fail-position :type integer)
+   (line-number   :initarg :line-number   :reader line-number   :type integer)
    (expected      :initarg :expected      :reader expected      :type string))
   (:documentation "Condition signaled upon a parse failure.")
   (:report (lambda (c s)
-             (with-slots (input-string fail-position expected)
+             (with-slots (input-string fail-position line-number expected)
                  c
-               (format s "Parse failure at:~%~vtv~% ~a~%Expected: ~a"
-                       fail-position input-string expected)))))
+               (format s "Parse failure at line ~a:~%~vtv~% ~a~%Expected: ~a"
+                       line-number fail-position input-string expected)))))
 
 ;;; ==================== Types ====================
 
@@ -68,6 +72,7 @@ condition with an :EXPECTED field of EXPECTED."
   `(%or ,parser (?fail (error (make-instance 'parse-failure
                                              :input-string *source-line*
                                              :fail-position (get-input-position)
+                                             :line-number *line-number*
                                              :expected ,expected)))))
 
 (defun %bind (parser make-parser)
