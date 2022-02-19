@@ -20,13 +20,6 @@
 
 ;;; ==================== Helpers ====================
 
-(defun parse-success-p (input parser)
-  "T if applying PARSER to INPUT results in a successful parse, and consumes all
-and of INPUT. NIL otherwise."
-  (multiple-value-bind (_ matched end-of-input) (parse input parser)
-    (declare (ignore _))
-    (and matched end-of-input)))
-
 (defun all-succeed (parser inputs)
   "Each input in INPUTS will be tested if it succeeds under PARSER."
   (handler-case (every (lambda (input) (parse-success-p input parser)) inputs)

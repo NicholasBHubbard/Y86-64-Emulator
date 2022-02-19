@@ -6,6 +6,7 @@
   (:import-from #:register-table #:*register-table* #:register)
   (:local-nicknames (#:a #:alexandria))
   (:export #:parse-source-line
+           #:parse-success-p
            #:parse-failure))
 
 (in-package #:parser)
@@ -17,6 +18,13 @@
 (defun parse-source-line (input-string)
   (let ((*source-line* input-string))
     (parse input-string (=source-line))))
+
+(defun parse-success-p (input parser)
+  "T if applying PARSER to INPUT results in a successful parse, and consumes all
+of INPUT. NIL otherwise."
+  (multiple-value-bind (_ matched end-of-input) (parse input parser)
+    (declare (ignore _))
+    (and matched end-of-input)))
 
 ;;; ==================== Parse Failure Condition ====================
 
