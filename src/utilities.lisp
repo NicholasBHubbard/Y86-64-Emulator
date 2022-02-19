@@ -1,11 +1,10 @@
 (defpackage utilities
-  (:use #:cl)
+  (:use #:cl #:lol)
   (:nicknames #:utils #:u)
   (:local-nicknames (#:a #:alexandria))
   (:export #:const
            #:make-keyword
-           #:defstruct-read-only
-           #:as-bool))
+           #:defstruct-read-only))
 
 (in-package #:utilities)
 
@@ -35,10 +34,3 @@
            ,@(append-read-only (rest options)))
         `(defstruct ,name
            ,@(append-read-only options)))))
-
-;;; ===============================================
-
-(defmacro as-bool (expression)
-  "T if the evaluation of EXPRESSION results in a true generalized boolean and 
-NIL otherwise."
-  `(if ,expression t nil))
