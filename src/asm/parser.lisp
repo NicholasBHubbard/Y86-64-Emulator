@@ -65,11 +65,10 @@ of INPUT. NIL otherwise."
 (defmacro %or-fail (expected parser)
   "If PARSER succeeds return it's output, otherwise signal a PARSE-FAILURE
 condition with an :EXPECTED field of EXPECTED."
-  `(%or ,parser (?fail
-                  (error (make-instance 'parse-failure
-                                        :input-string *source-line*
-                                        :fail-position (get-input-position)
-                                        :expected ,expected)))))
+  `(%or ,parser (?fail (error (make-instance 'parse-failure
+                                             :input-string *source-line*
+                                             :fail-position (get-input-position)
+                                             :expected ,expected)))))
 
 (defun %bind (parser make-parser)
   "Monadic bind function."
