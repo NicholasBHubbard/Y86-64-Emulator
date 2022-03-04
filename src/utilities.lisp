@@ -1,12 +1,22 @@
+;;;; Basic convenience utilities.
+
 (defpackage utilities
-  (:use #:cl #:lol)
+  (:use #:cl)
   (:nicknames #:utils #:u)
   (:local-nicknames (#:a #:alexandria))
-  (:export #:const
+  (:export #:internal-error
+           #:const
            #:make-keyword
            #:defstruct-read-only))
 
 (in-package #:utilities)
+
+;;; ===============================================
+
+(define-condition internal-error (error)
+  ((reason :initarg :reason :reader internal-error-reason :type string))
+  (:documentation "Condition for internal programmer errors.")
+  (:report (lambda (c s) (format s (internal-error-reason c)))))
 
 ;;; ===============================================
 
