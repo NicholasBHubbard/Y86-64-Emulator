@@ -4,7 +4,12 @@
   :maintainer "Nicholas Hubbard"
   :license "MIT"
   :version "0.1"
-  :depends-on ("alexandria" "cl-ppcre" "str" "maxpc")
+  :depends-on ("alexandria"
+               "str"
+               "let-over-lambda"
+               "cl-ppcre"
+               "maxpc"
+               "maxpc-ext")
   :components ((:file "src/utilities")
                (:file "src/asm/opcode-table")
                (:file "src/asm/register-table")
