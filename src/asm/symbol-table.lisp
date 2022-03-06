@@ -5,7 +5,7 @@
 (defpackage symbol-table
   (:use #:cl)
   (:shadow #:symbol-name)
-  (:export #:*symbol-table*
+  (:export #:symbol-table
            #:symbol-name-p
            #:asm-symbol
            #:asm-symbol-type
