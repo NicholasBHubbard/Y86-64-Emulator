@@ -14,40 +14,40 @@
   (run! 'symbol-table-suite))
 
 (defmacro test-wfst (test-name &body body)
-  "Same as fiveam:test but make available a fresh lexical symbol-table named 
-   SYMBOL-TABLE. The acronym wfst stands for with-fresh-symbol-table."
-  `(fiveam:test ,test-name
-                (let ((symbol-table (symbol-table::init-symbol-table)))
-                  ,@body)))
+  "Same as fiveam:test but automatically clear the symbol table after running
+the test."
+  `(progn
+     (fiveam:test ,test-name ,@body)
+     (symbol-table :clear-table)))
 
 ;;; Tests
 
 (test-wfst entry-p-and-insert  
   (is-true (progn
-             (funcall symbol-table :insert "FOO" :U 0)
-             (funcall symbol-table :entry-p "FOO"))))
+             (symbol-table :insert "FOO" :U 0)
+             (symbol-table :entry-p "FOO"))))
 
 (test-wfst entry-p-false
-  (is-false (funcall symbol-table :entry-p "FOO")))
+  (is-false (symbol-table :entry-p "FOO")))
 
 (test-wfst insert-signals-duplicate-symbol
   (signals symbol-table:duplicate-symbol
     (progn
-      (funcall symbol-table :insert "FOO" :U 0)
-      (funcall symbol-table :insert "FOO" :U 1000))))
+      (symbol-table :insert "FOO" :U 0)
+      (symbol-table :insert "FOO" :U 1000))))
 
 (test-wfst symbol-value
   (is-true (progn
-             (funcall symbol-table :insert "FOO" :U 12)
-             (= 12 (funcall symbol-table :symbol-value "FOO")))))
+             (symbol-table :insert "FOO" :U 12)
+             (= 12 (symbol-table :symbol-value "FOO")))))
 
 (test-wfst symbol-value-signals-undefined-symbol
-  (signals symbol-table:undefined-symbol (funcall symbol-table :symbol-value "FOO")))
+  (signals symbol-table:undefined-symbol (symbol-table :symbol-value "FOO")))
 
 (test-wfst symbol-type
   (is-true (progn
-             (funcall symbol-table :insert "FOO" :U 0)
-             (eql :U (funcall symbol-table :symbol-type "FOO")))))
+             (symbol-table :insert "FOO" :U 0)
+             (eql :U (symbol-table :symbol-type "FOO")))))
 
 (test-wfst symbol-type-signals-undefined-symbol
-  (signals symbol-table:undefined-symbol (funcall symbol-table :symbol-type "FOO")))
+  (signals symbol-table:undefined-symbol (symbol-table :symbol-type "FOO")))
