@@ -58,41 +58,54 @@
 
 ;;; ==================== Symbol Table Definition ====================
 
-(setf (symbol-function 'symbol-table) 
-      (let ((symbol-table (make-hash-table :test #'equal)))
-        (lol:dlambda 
-         (:entry-p (name)
-                   ;; T iff NAME is the name of an entry in SYMBOL-TABLE and.
-                   (nth-value 1 (gethash name symbol-table)))
-         
-         (:insert (name type value)
-                  ;; Insert an entry into SYMBOL-TABLE with name NAME, type TYPE,
-                  ;; and value VALUE. Signal a DUPLICATE-SYMBOL error if a symbol
-                  ;; with NAME is already present in SYMBOL-TABLE.
-                  (if (not (nth-value 1 (gethash name symbol-table)))
-                      (setf (gethash name symbol-table)
-                            (make-entry :name name
-                                        :type type
-                                        :value value))
-                      (error 'duplicate-symbol :symbol-name name :table symbol-table)))
+(u:defclosure symbol-table
+  "Lexical closure over the Y86-64 asm opcode table. This closure uses DLAMBDA 
+to provide various keyword function specifiers for dynamically querying and 
+modifying the opcode table. The following documents the various function
+specifers and their argument lists.
 
-         (:symbol-value (name)
-                        ;; Get the value of the symbol named NAME. If there is no
-                        ;; symbol named NAME in SYMBOL-TABLE then signal an
-                        ;; UNDEFINED-SYMBOL error.
-                        (lol:aif (nth-value 1 (gethash name symbol-table))
-                                 (entry-value it)
-                                 (error 'undefined-symbol :symbol-name name :table symbol-table)))
-         
-         (:symbol-type (name)
-                       ;; Get the type of the symbol named NAME. If there is no
-                       ;; symbol named NAME in SYMBOL-TABLE then signal an
-                       ;; UNDEFINED-SYMBOL error.
-                       (lol:aif (nth-value 1 (gethash symbol-name symbol-table))
-                                (entry-type it)
-                                (error 'undefined-symbol :symbol-name it :table symbol-table)))
+:entry-p name  
+  Return T if NAME is the name of an entry in the symbol table and return NIL
+  otherwise
 
-         (:clear-table ()
-                       ;; Reset SYMBOL-TABLE to an empty hash.
-                       (setf symbol-table (make-hash-table :test #'equal))))))
+:insert name type value
+  Insert a symbol named NAME with type TYPE and value VALUE into the symbol
+  table. If there already exists a symbol named NAME in the symbol table then
+  signal a DUPLICATE-SYMBOL error condition.
+
+:symbol-value name
+  Return the value of the symbol named NAME in the symbol table. If there is no
+  symbol named NAME then signal an UNDEFINED-SYMBOL error condition.
+
+:symbol-type name
+  Return the type of the symbol named NAME in the symbol table. If this is no
+  symbol named NAME then signal an UNDEFINED-SYMBOL error condition.
+
+:clear-table
+  Remove all entries from the symbol table."
+  (let ((symbol-table (make-hash-table :test #'equal)))
+    (lol:dlambda 
+     (:entry-p (name)
+               (nth-value 1 (gethash name symbol-table)))
+     
+     (:insert (name type value)
+              (if (not (nth-value 1 (gethash name symbol-table)))
+                  (setf (gethash name symbol-table)
+                        (make-entry :name name
+                                    :type type
+                                    :value value))
+                  (error 'duplicate-symbol :symbol-name name :table symbol-table)))
+
+     (:symbol-value (name)
+                    (lol:aif (nth-value 1 (gethash name symbol-table))
+                             (entry-value it)
+                             (error 'undefined-symbol :symbol-name name :table symbol-table)))
+     
+     (:symbol-type (name)
+                   (lol:aif (nth-value 1 (gethash symbol-name symbol-table))
+                            (entry-type it)
+                            (error 'undefined-symbol :symbol-name it :table symbol-table)))
+
+     (:clear-table ()
+                   (setf symbol-table (make-hash-table :test #'equal))))))
 
