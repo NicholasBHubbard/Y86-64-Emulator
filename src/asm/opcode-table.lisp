@@ -5,19 +5,20 @@
 (defpackage #:opcode-table
   (:use #:cl)
   (:local-nicknames (#:a #:alexandria))
-  (:export #:*opcode-table*
+  (:export #:opcode-table
            #:mnemonic
-           #:opcode-type))
+           #:instruction-type))
 
 (in-package #:opcode-table)
 
 ;;; ==================== Types ====================
 
 (deftype mnemonic ()
+  "The type of a Y86-64 mnemonic."
   '(member :HALT :NOP :RRMOVQ :IRMOVQ :RMMOVQ :MRMOVQ :ADDQ :SUBQ :ANDQ :XORQ :JMP :JLE :JL :JE :JNE :JGE :JG :CMOVLE :CMOVL :CMOVE :CMOVNE :CMOVGE :CMOVG :CALL :RET :PUSHQ))
 
-(deftype opcode-type ()
-  "The operand type of a Y86-64 mnemonic.
+(deftype instruction-type ()
+  "The operand type of a Y86-64 instruction.
 :N  -> Null operand 
 :M  -> Memory operand 
 :R  -> Register operand
@@ -26,16 +27,127 @@
   '(member :N :M :R :RR :IR))
 
 (u:defstruct-read-only entry
-  "The type for a single Y86-64 opcode table entry."
+  "The type of a single Y86-64 opcode table entry."
   (opcode   nil :type (unsigned-byte 8))
   (mnemonic nil :type mnemonic)
-  (type     nil :type opcode-type)
+  (type     nil :type instruction-type)
   (size     nil :type (unsigned-byte 8)))
 
 ;;; ==================== Opcode Table Definition ====================
 
-(defun init-opcode-table ()
-  "Initialize the *OPCODE-TABLE* global closure variable."
+(u:defclosure opcode-table ()
+  "Lexical closure over the Y86-64 static opcode table. This closure uses
+LOL:DLAMBDA to provide various function keywords for dynamically dispatching a
+query function to the opcode table. 
+
+Documentation for all the provided dispatch keywords:
+
+:opcode-p opcode
+  Return T if OPCODE is a valid Y86-64 opcode and return NIL otherwise.
+
+:mnemonic-p mn
+  Return T if MN is a Y86-64 mnemonic and return NIL otherwise. MN can be either
+  a keyword or a string.
+
+:type-p type
+  Return T if TYPE is a Y86-64 instruction type and return NIL otherwise.
+
+:all-opcodes
+  Return a list of all the Y86-64 opcodes.
+
+:all-mnemonics
+  Return a list of all the Y86-64 mnemonic keywords.
+
+:all-types
+  Return a list of all the Y86-64 instruction types.
+
+:all-opcode-strings
+  Return a list of all the Y86-64 opcodes as strings.
+
+:all-mnemonic-strings
+  Return a list of all the Y86-64 mnemonics as strings.
+
+:all-type-strings
+  Return a list of all Y86-64 instruction types as strings.
+
+:opcode-mnemonic opcode
+  Return the mnemonic keyword of the instruction with opcode OPCODE.
+
+:opcode-type opcode
+  Return the type of the instruction with opcode OPCODE.
+
+:opcode-size opcode
+  Return the size of the instruction with opcode OPCODE.
+
+:mnemonic-opcode mn
+  Return the opcode of the instruction with mnemonic MN. MN can be either a 
+  keyword or a string.
+
+:mnemonic-type mn
+  Return the type of the instruction with mnemonic MN. MN can be either a
+  keyword or a string.
+
+:mnemonic-size mn
+  Return the size of the instruction with mnemonic MN. MN can be either a
+  keyword or a string.
+
+:opcode-mnemonic-string opcode
+  Return the mnemonic string of the instruction with opcode OPCODE.
+
+:opcode-type-string opcode
+  Return the type of the instruction with opcode OPCODE as a string.
+
+:mnemonic-opcode-string
+  Return the opcode of the instruction with mnemonic MN as a string. MN can be
+  either a keyword or a string.
+
+:mnemonic-type-string mn
+  Return the type of the instruction the mnemonic MN as a string. MN can be 
+  either a keyword or a string.
+
+:opcode-mnemonic-match-p opcode mn
+  Return T if there exists an instruction with opcode OPCODE and mnemonic MN and
+ return NIL otherwise. MN can be either a keyword or a string.
+
+:opcode-type-match-p opcode type
+  Return T if there exists an instruction with opcode OPCODE and type TYPE and
+  return NIL otherwise.
+
+:opcode-size-match-p opcode size
+  Return T if there exists an instruction with opcode OPCODE and size SIZE and
+  return NIL otherwise.
+
+:mnemonic-type-match-p mn type
+  Return T if there exists an instruction with mnemonic MN and type TYPE and
+  return NIL otherwise. MN can be either a keyword or a string.
+
+:mnemonic-size-match-p mn size
+  Return T if there exists an instruction with mnemonic MN and size SIZE. MN can
+  be either a keyword or a string.
+
+:type-mnemonics type
+  Return a list of all mnemonic keywords of instructions with type TYPE.
+
+:type-opcodes
+  Return a list of all the opcodes of the instructions with type TYPE.
+
+:type-mnemonic-strings type
+  Return a list of all mnemonic strings of instructions with type TYPE.
+
+:type-opcode-strings type
+  Return a list of all opcode strings of instructions with type TYPE.
+
+:size-opcodes size
+  Return a list of all the opcodes of instructions with size SIZE.
+
+:size-mnemonics size
+  Return a list of all the mnemonic keywords of instructions with size SIZE.
+
+:size-opcode-strings size
+  Return a list of all the opcode string of instructions with size SIZE.
+
+:size-mnemonic-strings size
+  Return a list of the mnemonic strings of instructions with size SIZE."
   (let ((opcode-table
           (list
            (make-entry :opcode #x00 :mnemonic :HALT   :type :N  :size  1)
@@ -64,240 +176,191 @@
            (make-entry :opcode #x80 :mnemonic :CALL   :type :M  :size  9)
            (make-entry :opcode #x90 :mnemonic :RET    :type :N  :size  1)
            (make-entry :opcode #xA0 :mnemonic :PUSHQ  :type :R  :size  2))))
-    (lambda (function-keyword &rest inputs)
-      ;; turn input strings into keywords so user the can choose input format
-      (let ((inputs (mapcar (lambda (input)
-                              (if (stringp input)
-                                  (u:make-keyword input)
-                                  input))
-                            inputs)))
-        
-        (case function-keyword
-          (:opcode-p
-           ;; T iff (FIRST INPUTS) is a Y86-64 opcode
-           (if (member (first inputs) (mapcar #'entry-opcode opcode-table) :test #'=)
-               t))
-          
-          (:mnemonic-p
-           ;; T iff (FIRST INPUTS) is a Y86-64 mnemonic
-           (if (member (first inputs) (mapcar #'entry-mnemonic opcode-table))
-               t))
-          
-          (:type-p
-           ;; T iff (FIRST INPUTS) is a Y86-64 operation type
-           (if (member (first inputs) (mapcar #'entry-type opcode-table))
-               t))        
+    (lol:dlambda
+      (:opcode-p (opcode)
+        (if (member opcode (mapcar #'entry-opcode opcode-table) :test #'=) t))
+      
+      (:mnemonic-p (mn)
+        (if (member (u:as-keyword mn) (mapcar #'entry-mnemonic opcode-table)) t))
+      
+      (:type-p (type)
+        (if (member type (mapcar #'entry-type opcode-table)) t))
+      
+      (:all-opcodes ()
 
-          (:all-opcodes
-           ;; list of all the opcodes of the Y86-64 ISA
-           (sort (mapcar #'entry-opcode opcode-table) #'<))
-          
-          (:all-mnemonics
-           ;; list of all the mnemonics of the Y86-64 ISA
-           (sort (mapcar #'entry-mnemonic opcode-table) #'string<))
-          
-          (:all-types
-           ;; list of all the instruction types of the Y86-64 ISA
-           (sort (remove-duplicates (mapcar #'entry-type opcode-table)) #'string<))
-          
-          (:all-opcode-strings
-           ;; like :ALL-OPCODES but stringify the opcodes
-           (sort (mapcar
-                  (a:compose (a:curry #'format nil "~x") #'entry-opcode)
-                  opcode-table)
-                 #'string<))
-          
-          (:all-mnemonic-strings
-           ;; like :ALL-MNEMONICS but stringify the mnemonics
-           (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic) opcode-table) #'string<))
-          
-          (:all-type-strings
-           ;; like :ALL-TYPES but stringify the types
-           (sort (remove-duplicates
-                  (mapcar (a:compose #'symbol-name #'entry-type) opcode-table))
-                 #'string<))
-          
-          (:opcode-mnemonic
-           ;; the mnemonic that has the opcode (FIRST INPUTS)
-           (entry-mnemonic
-            (find-if
-             (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
-             opcode-table)))
-          
-          (:opcode-type
-           ;; the type of the opcode (FIRST INPUTS)
-           (entry-type
-            (find-if
-             (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
-             opcode-table))) 
+        (sort (mapcar #'entry-opcode opcode-table) #'<))
+      
+      (:all-mnemonics ()
+        (sort (mapcar #'entry-mnemonic opcode-table) #'string<))
+      
+      (:all-types ()
+        (sort (remove-duplicates (mapcar #'entry-type opcode-table)) #'string<))
+      
+      (:all-opcode-strings ()
+        (sort (mapcar
+               (a:compose (a:curry #'format nil "~x") #'entry-opcode)
+               opcode-table)
+              #'string<))
+      
+      (:all-mnemonic-strings ()
+        (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic) opcode-table) #'string<))
+      
+      (:all-type-strings ()
+        (sort (remove-duplicates
+               (mapcar (a:compose #'symbol-name #'entry-type) opcode-table))
+              #'string<))
+      
+      (:opcode-mnemonic (opcode)
+        (entry-mnemonic
+         (find-if
+          (a:compose (a:curry #'= opcode) #'entry-opcode)
+          opcode-table)))
+      
+      (:opcode-type (opcode)
+        (entry-type
+         (find-if
+          (a:compose (a:curry #'= opcode) #'entry-opcode)
+          opcode-table))) 
 
-          (:opcode-size
-           ;; the size of the opcode (FIRST INPUTS)
+      (:opcode-size (opcode)
+        (entry-size
+         (find-if
+          (a:compose (a:curry #'= opcode) #'entry-opcode)
+          opcode-table)))
+      
+      (:mnemonic-opcode (mn)
+        (entry-opcode
+         (find-if
+          (a:compose (a:curry #'eql (u:as-keyword mn)) #'entry-mnemonic)
+          opcode-table)))
+      
+      (:mnemonic-type (mn)
+        (entry-type
+         (find-if
+          (a:compose (a:curry #'eql (u:as-keyword mn)) #'entry-mnemonic)
+          opcode-table)))
+
+      (:mnemonic-size (mn)
+        (entry-size
+         (find-if
+          (a:compose (a:curry #'eql (u:as-keyword mn)) #'entry-mnemonic)
+          opcode-table)))
+      
+      (:opcode-mnemonic-string (opcode)
+        (symbol-name
+         (entry-mnemonic
+          (find-if
+           (a:compose (a:curry #'= opcode) #'entry-opcode)
+           opcode-table))))
+      
+      (:opcode-type-string (opcode)
+        (symbol-name
+         (entry-type
+          (find-if
+           (a:compose (a:curry #'= opcode) #'entry-opcode)
+           opcode-table))))
+      
+      (:mnemonic-opcode-string (mn)
+        (format nil "~x"
+                (entry-opcode
+                 (find-if
+                  (a:compose (a:curry #'eql (u:as-keyword mn)) #'entry-mnemonic)
+                  opcode-table))))
+      
+      (:mnemonic-type-string (mn)
+        (symbol-name
+         (entry-type
+          (find-if
+           (a:compose (a:curry #'eql (u:as-keyword mn)) #'entry-mnemonic)
+           opcode-table))))
+      
+      (:opcode-mnemonic-match-p (opcode mn)
+        (eql (u:as-keyword mn)
+             (entry-mnemonic
+              (find-if
+               (a:compose (a:curry #'= opcode) #'entry-opcode)
+               opcode-table))))
+
+      (:opcode-type-match-p (opcode type)
+        (eql type
+             (entry-type
+              (find-if
+               (a:compose (a:curry #'= opcode) #'entry-opcode)
+               opcode-table))))
+
+      (:opcode-size-match-p (opcode size)
+        (= size
            (entry-size
-            (find-if
-             (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
-             opcode-table)))
-          
-          (:mnemonic-opcode
-           ;; the code of the mnemonic (FIRST INPUTS)
-           (entry-opcode
-            (find-if
-             (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
-             opcode-table)))
-          
-          (:mnemonic-type
-           ;; the type of the mnemonic (FIRST INPUTS)
-           (entry-type
-            (find-if
-             (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
-             opcode-table)))
-
-          (:mnemonic-size
-           ;; the size of a the mnemonic (FIRST INPUTS)
-           (entry-size
-            (find-if
-             (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
-             opcode-table)))
-          
-          (:opcode-mnemonic-string
-           ;; like :OPCODE-MNEMONIC but stringify the mnemonic
-           (symbol-name
-            (entry-mnemonic
-             (find-if
-              (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
-              opcode-table))))
-          
-          (:opcode-type-string
-           ;; like :OPCODE-TYPE except stringify the type
-           (symbol-name
-            (entry-type
-             (find-if
-              (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
-              opcode-table))))
-          
-          (:mnemonic-opcode-string
-           ;; like :MNEMONIC-OPCODE except stringify the opcode.
-           (format nil "~x"
-                   (entry-opcode
-                    (find-if
-                     (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
+            (find-if (a:compose (a:curry #'= opcode) #'entry-opcode)
                      opcode-table))))
-          
-          (:mnemonic-type-string
-           ;; like :MNEMONIC-TYPE except stringify the type
-           (symbol-name
-            (entry-type
-             (find-if
-              (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
-              opcode-table))))
-          
-          (:opcode-mnemonic-match-p
-           ;; T iff the opcode (FIRST INPUTS) has mnemonic (SECOND INPUTS)
-           (eql (second inputs)
-                (entry-mnemonic
-                 (find-if
-                  (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
-                  opcode-table))))
+      
+      (:mnemonic-type-match-p (mn type)
+        (eql type
+             (entry-type
+              (find-if
+               (a:compose (a:curry #'eql (u:as-keyword mn)) #'entry-mnemonic)
+               opcode-table))))
 
-          (:opcode-type-match-p
-           ;; T iff the opcode (FIRST INPUTS) has type (SECOND INPUTS)
-           (eql (second inputs)
-                (entry-type
-                 (find-if
-                  (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
-                  opcode-table))))
+      (:mnemonic-size-match-p (mn size)
+        (= size
+           (entry-size
+            (find-if
+             (a:compose (a:curry #'eql (u:as-keyword mn)) #'entry-mnemonic)
 
-          (:opcode-size-match-p
-           ;; T iff the opcode (FIRST INPUTS) has size (SECOND-INPUTS)
-           (= (second inputs)
-              (entry-size
-               (find-if (a:compose (a:curry #'= (first inputs)) #'entry-opcode)
-                        opcode-table))))
-          
-          (:mnemonic-type-match-p
-           ;; T iff the mnemonic (FIRST INPUTS) has type (SECOND INPUTS)
-           (eql (second inputs)
-                (entry-type
-                 (find-if
-                  (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
-                  opcode-table))))
+             opcode-table))))
+      
+      (:type-mnemonics (type)
+        (sort (mapcar #'entry-mnemonic
+                      (remove-if-not
+                       (a:compose (a:curry #'eql type) #'entry-type)
+                       opcode-table))
+              #'string<))
+      
+      (:type-opcodes (type)
+        (sort (mapcar #'entry-opcode
+                      (remove-if-not
+                       (a:compose (a:curry #'eql type) #'entry-type)
+                       opcode-table))
+              #'<))
+      
+      (:type-mnemonic-strings (type)
+        (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic)
+                      (remove-if-not
+                       (a:compose (a:curry #'eql type) #'entry-type)
+                       opcode-table))
+              #'string<)) 
 
-          (:mnemonic-size-match-p
-           ;; T iff the mnemonic (FIRST INPUTS) has size (SECOND INPUTS)
-           (= (second inputs)
-              (entry-size
-               (find-if
-                (a:compose (a:curry #'eql (first inputs)) #'entry-mnemonic)
+      (:type-opcode-strings (type)
+        (sort (mapcar (a:compose (a:curry #'format nil "~x") #'entry-opcode)
+                      (remove-if-not
+                       (a:compose (a:curry #'eql type) #'entry-type)
+                       opcode-table))
+              #'string<))
+      
+      (:size-opcodes (size)
+        (sort (mapcar #'entry-opcode
+                      (remove-if-not
+                       (a:compose (a:curry #'= size) #'entry-size)
+                       opcode-table))
+              #'<))
+      
+      (:size-mnemonics (size)
+        (sort (mapcar #'entry-mnemonic
+                      (remove-if-not
+                       (a:compose (a:curry #'= size) #'entry-size)
+                       opcode-table))
+              #'string<)) 
 
-                opcode-table))))
-          
-          (:type-mnemonics
-           ;; list of all the mnemonics that have the type (FIRST INPUTS)
-           (sort (mapcar #'entry-mnemonic
-                         (remove-if-not
-                          (a:compose (a:curry #'eql (first inputs)) #'entry-type)
-                          opcode-table))
-                 #'string<))
-          
-          (:type-opcodes
-           ;; list of all the opcodes that have the type (FIRST INPUTS)
-           (sort (mapcar #'entry-opcode
-                         (remove-if-not
-                          (a:compose (a:curry #'eql (first inputs)) #'entry-type)
-                          opcode-table))
-                 #'<))
-          
-          (:type-mnemonic-strings
-           ;; like :TYPE-MNEMONICS but stringify the mnemonics
-           (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic)
-                         (remove-if-not
-                          (a:compose (a:curry #'eql (first inputs)) #'entry-type)
-                          opcode-table))
-                 #'string<)) 
-
-          (:type-opcode-strings
-           ;; like :TYPE-OPCODES except stringify the opcodes
-           (sort (mapcar (a:compose (a:curry #'format nil "~x") #'entry-opcode)
-                         (remove-if-not
-                          (a:compose (a:curry #'eql (first inputs)) #'entry-type)
-                          opcode-table))
-                 #'string<))
-          
-          (:size-opcodes
-           ;; list of all the opcodes that have size (FIRST INPUTS)
-           (sort (mapcar #'entry-opcode
-                         (remove-if-not
-                          (a:compose (a:curry #'= (first inputs)) #'entry-size)
-                          opcode-table))
-                 #'<))
-          
-          (:size-mnemonics
-           ;; list of all the mnemonics that have size (FIRST INPUTS)
-           (sort (mapcar #'entry-mnemonic
-                         (remove-if-not
-                          (a:compose (a:curry #'= (first inputs)) #'entry-size)
-                          opcode-table))
-                 #'string<)) 
-
-          (:size-opcode-strings
-           ;; like :SIZE-OPCODES except stringify the opcodes
-           (sort (mapcar (a:compose (a:curry #'format nil "~x") #'entry-opcode)
-                         (remove-if-not
-                          (a:compose (a:curry #'= (first inputs)) #'entry-size)
-                          opcode-table))
-                 #'string<))
-          
-          (:size-mnemonic-strings
-           ;; like :SIZE-MNEMONICS except stringify the mnemonics
-           (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic)
-                         (remove-if-not
-                          (a:compose (a:curry #'= (first inputs)) #'entry-size)
-                          opcode-table))
-                 #'string<))
-          
-          (otherwise
-           (error 'internal (format nil "The symbol ~a does not denote a valid function" function-keyword))))))))
-
-(defparameter *opcode-table* (init-opcode-table)
-  "Lexical closure over the static Y86-64 opcode table that can be used to query
-information about the various opcodes.")
+      (:size-opcode-strings (size)
+        (sort (mapcar (a:compose (a:curry #'format nil "~x") #'entry-opcode)
+                      (remove-if-not
+                       (a:compose (a:curry #'= size) #'entry-size)
+                       opcode-table))
+              #'string<))
+      
+      (:size-mnemonic-strings (size)
+        (sort (mapcar (a:compose #'symbol-name #'entry-mnemonic)
+                      (remove-if-not
+                       (a:compose (a:curry #'= size) #'entry-size)
+                       opcode-table))
+              #'string<)))))
