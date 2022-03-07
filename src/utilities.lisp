@@ -7,6 +7,7 @@
   (:export #:internal-error
            #:const
            #:make-keyword
+           #:as-keyword
            #:defstruct-read-only
            #:defclosure))
 
@@ -27,9 +28,19 @@
 
 ;;; ===============================================
 
-(defun make-keyword (name)
-  "Interns the string designated by NAME in the KEYWORD package."
-  (a:make-keyword (string-upcase name)))
+(defun make-keyword (string)
+  "Interns the string designated by STRING in the keyword package."
+  (a:make-keyword (string-upcase string)))
+
+;;; ===============================================
+
+(defun as-keyword (thing)
+  "Coerce THING into a keyword symbol interned in the keyword package."
+  (etypecase thing
+    (keyword thing)
+    (symbol (make-keyword (symbol-name thing)))
+    (string (make-keyword thing))
+    (number (make-keyword (write-to-string thing)))))
 
 ;;; ===============================================
 
