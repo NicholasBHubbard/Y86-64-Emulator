@@ -33,7 +33,7 @@ their argument lists.
 
 :register-name-p reg
   Return T if REG is a valid Y86-64 register and return NIL otherwise. REG can
-  be either a keyword or string.
+  be either a keyword or a string.
 
 :all-ids
   Return a list of all the Y86-64 register ids.
@@ -51,7 +51,7 @@ their argument lists.
   Return the register name keyword with id ID.
 
 :register-name-id reg
-  Return the id of the register named REG. REG can be either a keyword or
+  Return the id of the register named REG. REG can be either a keyword or a
   string.
 
 :id-register-name-string id
@@ -59,11 +59,11 @@ their argument lists.
 
 :register-name-id-string reg
   Return the id of the register named REG as a string. REG can be either a
-  keyword or string.
+  keyword or a string.
 
 :id-register-name-match-p id reg
   Return T if the register REG has id ID and return NIL otherwise. REG can be
-  either a keyword or string. "
+  either a keyword or a string. "
   (let ((register-table
           (list
            (make-entry :id #x0 :name :RAX)
