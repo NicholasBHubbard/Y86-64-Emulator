@@ -85,27 +85,27 @@ function specifers and their argument lists.
   Remove all entries from the symbol table."
   (let ((symbol-table (make-hash-table :test #'equal)))
     (lol:dlambda 
-     (:entry-p (name)
-               (nth-value 1 (gethash name symbol-table)))
-     
-     (:insert (name type value)
-              (if (not (nth-value 1 (gethash name symbol-table)))
-                  (setf (gethash name symbol-table)
-                        (make-entry :name name
-                                    :type type
-                                    :value value))
-                  (error 'duplicate-symbol :symbol-name name :table symbol-table)))
+      (:entry-p (name)
+        (nth-value 1 (gethash name symbol-table)))
+      
+      (:insert (name type value)
+        (if (not (nth-value 1 (gethash name symbol-table)))
+            (setf (gethash name symbol-table)
+                  (make-entry :name name
+                              :type type
+                              :value value))
+            (error 'duplicate-symbol :symbol-name name :table symbol-table)))
 
-     (:symbol-value (name)
-                    (lol:aif (nth-value 1 (gethash name symbol-table))
-                             (entry-value it)
-                             (error 'undefined-symbol :symbol-name name :table symbol-table)))
-     
-     (:symbol-type (name)
-                   (lol:aif (nth-value 1 (gethash symbol-name symbol-table))
-                            (entry-type it)
-                            (error 'undefined-symbol :symbol-name it :table symbol-table)))
+      (:symbol-value (name)
+        (lol:aif (nth-value 1 (gethash name symbol-table))
+                 (entry-value it)
+                 (error 'undefined-symbol :symbol-name name :table symbol-table)))
+      
+      (:symbol-type (name)
+        (lol:aif (nth-value 1 (gethash symbol-name symbol-table))
+                 (entry-type it)
+                 (error 'undefined-symbol :symbol-name it :table symbol-table)))
 
-     (:clear-table ()
-                   (setf symbol-table (make-hash-table :test #'equal))))))
+      (:clear-table ()
+        (setf symbol-table (make-hash-table :test #'equal))))))
 

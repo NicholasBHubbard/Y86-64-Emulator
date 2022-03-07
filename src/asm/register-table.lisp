@@ -83,59 +83,59 @@ their argument lists.
            (make-entry :id #xE :name :R14)
            (make-entry :id #xF :name :NOREG))))
     (lol:dlambda
-     (:id-p (id)
-            (if (member (first inputs) (mapcar #'entry-id register-table) :test #'=)
-                t))
-     
-     (:register-name-p (reg)
-                       (if (member (u:as-keyword reg) (mapcar #'entry-name register-table))
-                           t))
-     
-     (:all-ids ()
-               (sort (mapcar #'entry-id register-table) #'<))
-     
-     (:all-register-names ()
-                          (sort (mapcar #'entry-name register-table) #'string<))
-     
-     (:all-id-strings ()
-                      (sort (mapcar
-                             (a:compose (a:curry #'format nil "~x") #'entry-id)
-                             register-table)
-                            #'string<))
-     
-     (:all-register-name-strings ()
-                                 (sort (mapcar (a:compose #'symbol-name #'entry-name) register-table)
-                                       #'string<))
-     
-     (:id-register-name (id)
-                        (entry-name
-                         (find-if
-                          (a:compose (a:curry #'= id) #'entry-id)
-                          register-table)))
-     
-     (:register-name-id (reg)
-                        (entry-id
-                         (find-if
-                          (a:compose (a:curry #'eql (u:as-keyword reg)) #'entry-name)
-                          register-table)))
-     
-     (:id-register-name-string (id)
-                               (symbol-name
-                                (entry-name
-                                 (find-if
-                                  (a:compose (a:curry #'= id) #'entry-id)
-                                  register-table))))
-     
-     (:register-name-id-string (reg)
-                               (format nil "~x"
-                                       (entry-id
-                                        (find-if
-                                         (a:compose (a:curry #'eql (u:as-keyword reg)) #'entry-name)
-                                         register-table))))
+      (:id-p (id)
+        (if (member (first inputs) (mapcar #'entry-id register-table) :test #'=)
+            t))
+      
+      (:register-name-p (reg)
+        (if (member (u:as-keyword reg) (mapcar #'entry-name register-table))
+            t))
+      
+      (:all-ids ()
+        (sort (mapcar #'entry-id register-table) #'<))
+      
+      (:all-register-names ()
+        (sort (mapcar #'entry-name register-table) #'string<))
+      
+      (:all-id-strings ()
+        (sort (mapcar
+               (a:compose (a:curry #'format nil "~x") #'entry-id)
+               register-table)
+              #'string<))
+      
+      (:all-register-name-strings ()
+        (sort (mapcar (a:compose #'symbol-name #'entry-name) register-table)
+              #'string<))
+      
+      (:id-register-name (id)
+        (entry-name
+         (find-if
+          (a:compose (a:curry #'= id) #'entry-id)
+          register-table)))
+      
+      (:register-name-id (reg)
+        (entry-id
+         (find-if
+          (a:compose (a:curry #'eql (u:as-keyword reg)) #'entry-name)
+          register-table)))
+      
+      (:id-register-name-string (id)
+        (symbol-name
+         (entry-name
+          (find-if
+           (a:compose (a:curry #'= id) #'entry-id)
+           register-table))))
+      
+      (:register-name-id-string (reg)
+        (format nil "~x"
+                (entry-id
+                 (find-if
+                  (a:compose (a:curry #'eql (u:as-keyword reg)) #'entry-name)
+                  register-table))))
 
-     (:id-register-name-match-p (id reg)
-                                (eql (u:as-keyword reg)
-                                     (entry-name
-                                      (find-if
-                                       (a:compose (a:curry #'= id) #'entry-id)
-                                       register-table)))))))
+      (:id-register-name-match-p (id reg)
+        (eql (u:as-keyword reg)
+             (entry-name
+              (find-if
+               (a:compose (a:curry #'= id) #'entry-id)
+               register-table)))))))
