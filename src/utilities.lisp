@@ -35,16 +35,16 @@
 
 (defmacro defstruct-read-only (name &body options)
   "Like DEFSTRUCT but each field is made read-only."
-  (flet ((append-read-only (options)
+  (flet ((append-read-only-slot-option (options)
            (loop :for opt :in options
                  :collect (append (a:remove-from-plist opt :read-only)
                                   (list :read-only t)))))
     (if (stringp (first options))
         `(defstruct ,name
            ,(first options)
-           ,@(append-read-only (rest options)))
+           ,@(append-read-only-slot-option (rest options)))
         `(defstruct ,name
-           ,@(append-read-only options)))))
+           ,@(append-read-only-slot-option options)))))
 
 ;;; ===============================================
 
