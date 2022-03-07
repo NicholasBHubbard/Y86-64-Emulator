@@ -9,7 +9,8 @@
                "let-over-lambda"
                "cl-ppcre"
                "maxpc"
-               "maxpc-ext")
+               "maxpc-ext"
+               "trivial-indent")
   :components ((:file "src/utilities")
                (:file "src/asm/opcode-table")
                (:file "src/asm/register-table")
