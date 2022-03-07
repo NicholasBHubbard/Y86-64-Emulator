@@ -1,7 +1,6 @@
 (defpackage symbol-table-test
   (:export #:run-tests)
-  (:use #:cl #:fiveam)
-  (:import-from #:symbol-table #:*symbol-table*))
+  (:use #:cl #:fiveam #:symbol-table))
 
 (in-package #:symbol-table-test)
 
@@ -31,7 +30,7 @@ the test."
   (is-false (symbol-table :entry-p "FOO")))
 
 (test-wfst insert-signals-duplicate-symbol
-  (signals symbol-table:duplicate-symbol
+  (signals duplicate-symbol
     (progn
       (symbol-table :insert "FOO" :U 0)
       (symbol-table :insert "FOO" :U 1000))))
@@ -42,7 +41,7 @@ the test."
              (= 12 (symbol-table :symbol-value "FOO")))))
 
 (test-wfst symbol-value-signals-undefined-symbol
-  (signals symbol-table:undefined-symbol (symbol-table :symbol-value "FOO")))
+  (signals undefined-symbol (symbol-table :symbol-value "FOO")))
 
 (test-wfst symbol-type
   (is-true (progn
@@ -50,4 +49,4 @@ the test."
              (eql :U (symbol-table :symbol-type "FOO")))))
 
 (test-wfst symbol-type-signals-undefined-symbol
-  (signals symbol-table:undefined-symbol (symbol-table :symbol-type "FOO")))
+  (signals undefined-symbol (symbol-table :symbol-type "FOO")))
