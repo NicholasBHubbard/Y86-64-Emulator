@@ -15,8 +15,8 @@
 (defun run-tests ()
   (run! 'opcode-table-suite))
 
-;;; Define special variables to help avoid writing boilerplate code in the
-;;; actual tests.
+;;; Define global variables that represent hardcoded facts that tests can be
+;;; defined in terms of.
 
 (defparameter *opcodes* (list #x00 #x10 #x20 #x30 #x40 #x50 #x60 #x61 #x62 #x63 #x70 #x71 #x72 #x73 #x74 #x75 #x76 #x21 #x22 #x23 #x24 #x25 #x26 #x80 #x90 #xA0))
 
