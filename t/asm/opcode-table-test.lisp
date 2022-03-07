@@ -1,9 +1,3 @@
-;;;; Test the opcode-table package. This package exports one function which is
-;;;; OPCODE-TABLE. This function returns a closure that closes over the static
-;;;; Y86-64 OpCode Table, and provides a dispatch table for querying the OpCode
-;;;; Table in various different ways. This test suite will test all of the query
-;;;; functions.
-
 (defpackage opcode-table-test
   (:export #:run-tests)
   (:use #:cl #:fiveam #:opcode-table)
