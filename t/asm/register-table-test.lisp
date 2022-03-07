@@ -30,50 +30,50 @@
 ;;; Tests
 
 (test pass-input-as-string
-  (is-true (and (funcall *register-table* :register-name-p :RAX)
-                (funcall *register-table* :register-name-p "RAX"))))
+  (is-true (and (register-table :register-name-p :RAX)
+                (register-table :register-name-p "RAX"))))
 (test id-p-trues
-  (is-true (every (curry #'funcall *register-table* :id-p) *ids*)))
+  (is-true (every (curry #'register-table :id-p) *ids*)))
 
 (test id-p-falses
-  (is-true (notany (curry #'funcall *register-table* :id-p)
+  (is-true (notany (curry #'register-table :id-p)
                    (list -1 256))))
 
 (test all-ids
-  (is-true (equal (funcall *register-table* :all-ids)
+  (is-true (equal (register-table :all-ids)
                   (sort (copy-seq *ids*) #'<))))
 
 (test all-register-names
-  (is-true (equal (funcall *register-table* :all-register-names)
+  (is-true (equal (register-table :all-register-names)
                   (sort (copy-seq *register-names*) #'string<))))
 
 (test all-id-strings
-  (is-true (equal (funcall *register-table* :all-id-strings)
+  (is-true (equal (register-table :all-id-strings)
                   (sort (copy-seq *id-strings*) #'string<))))
 
 (test all-register-name-strings
   (is-true
-   (equal (funcall *register-table* :all-register-name-strings)
+   (equal (register-table :all-register-name-strings)
           (sort (copy-seq *register-name-strings*) #'string<))))
 
 (test id-register-name
-  (is-true (eql :RSI (funcall *register-table* :id-register-name #x6))))
+  (is-true (eql :RSI (register-table :id-register-name #x6))))
 
 (test register-name-id
-  (is-true (eql #x6 (funcall *register-table* :register-name-id :RSI))))
+  (is-true (eql #x6 (register-table :register-name-id :RSI))))
 
 (test id-register-name-string
   (is-true
-   (string= "R12" (funcall *register-table* :id-register-name-string #xC))))
+   (string= "R12" (register-table :id-register-name-string #xC))))
 
 (test register-name-id-string
   (is-true
-   (string= "F" (funcall *register-table* :register-name-id-string :NOREG))))
+   (string= "F" (register-table :register-name-id-string :NOREG))))
 
 (test id-register-name-match-p-true
   (is-true
-   (funcall *register-table* :id-register-name-match-p #x2 :RDX)))
+   (register-table :id-register-name-match-p #x2 :RDX)))
 
 (test id-register-name-match-p-false
   (is-false
-   (funcall *register-table* :id-register-name-match-p #x3 :RDX)))
+   (register-table :id-register-name-match-p #x3 :RDX)))
