@@ -1,4 +1,4 @@
-(asdf:defsystem "asm"
+(defsystem "asm"
   :description "Assembler for the Y86-64 ISA described in CSAPP by Bryant and O'Hallaron."
   :author "Nicholas Hubbard"
   :maintainer "Nicholas Hubbard"
