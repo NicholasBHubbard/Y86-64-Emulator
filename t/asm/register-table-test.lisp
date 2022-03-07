@@ -1,7 +1,6 @@
 (defpackage register-table-test
   (:export #:run-tests)
-  (:use #:cl #:fiveam)
-  (:import-from #:register-table #:*register-table*)
+  (:use #:cl #:fiveam #:register-table)
   (:import-from #:alexandria
                 #:compose
                 #:curry))
@@ -30,10 +29,10 @@
 ;;; Tests
 
 (test pass-input-as-string
-  (is-true (and (register-table :register-name-p :RAX)
-                (register-table :register-name-p "RAX"))))
+      (is-true (and (register-table :register-name-p :RAX)
+                    (register-table :register-name-p "RAX"))))
 (test id-p-trues
-  (is-true (every (curry #'register-table :id-p) *ids*)))
+      (is-true (every (curry #'register-table :id-p) *ids*)))
 
 (test id-p-falses
   (is-true (notany (curry #'register-table :id-p)

@@ -6,8 +6,7 @@
 
 (defpackage opcode-table-test
   (:export #:run-tests)
-  (:use #:cl #:fiveam)
-  (:import-from #:opcode-table #:*opcode-table*)
+  (:use #:cl #:fiveam #:opcode-table)
   (:import-from #:alexandria
                 #:compose
                 #:curry))
@@ -40,12 +39,12 @@
 ;;; Tests
 
 (test pass-input-as-string
-  (is-true (and (opcode-table :mnemonic-p :HALT)
-                (opcode-table :mnemonic-p "HALT"))))
+      (is-true (and (opcode-table :mnemonic-p :HALT)
+                    (opcode-table :mnemonic-p "HALT"))))
 
 (test mnemonic-p-trues
-  (is-true (every (curry #'opcode-table :mnemonic-p)
-                  (append *mnemonics* *mnemonic-strings*))))
+      (is-true (every (curry #'opcode-table :mnemonic-p)
+                      (append *mnemonics* *mnemonic-strings*))))
 
 (test mnemonic-p-falses
   (is-true (notany (curry #'opcode-table :mnemonic-p)
