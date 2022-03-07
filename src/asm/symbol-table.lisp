@@ -59,10 +59,10 @@
 ;;; ==================== Symbol Table Definition ====================
 
 (u:defclosure symbol-table
-  "Lexical closure over the Y86-64 asm opcode table. This closure uses DLAMBDA 
-to provide various keyword function specifiers for dynamically querying and 
-modifying the opcode table. The following documents the various function
-specifers and their argument lists.
+  "Lexical closure over the Y86-64 asm opcode table. This closure uses
+LOL:DLAMBDA to provide various keyword function specifiers for dynamically
+querying and modifying the opcode table. The following documents the various
+function specifers and their argument lists.
 
 :entry-p name  
   Return T if NAME is the name of an entry in the symbol table and return NIL
