@@ -43,7 +43,7 @@
   (:report (lambda (c s)
              (with-slots (symbol-name)
                  c
-               (format s "\"~a\" is undefined." symbol-name)))))
+               (format s "The symbol \"~a\" is undefined." symbol-name)))))
 
 (define-condition duplicate-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type asm-symbol)
@@ -52,7 +52,7 @@
   (:report (lambda (c s)
              (with-slots (symbol-name)
                  c
-               (format s "\"~a\" is already defined." symbol-name)))))
+               (format s "The symbol \"~a\" is already defined." symbol-name)))))
 
 ;;; ==================== Symbol Table Definition ====================
 
