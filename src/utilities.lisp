@@ -15,6 +15,11 @@
 
 ;;; ===============================================
 
+(trivial-indent:define-indentation lol:dlambda
+    (&rest (&whole 2 &rest 2)))
+
+;;; ===============================================
+
 (define-condition internal-error (error)
   ((reason :initarg :reason :reader internal-error-reason :type string))
   (:documentation "Condition for internal programmer errors.")
