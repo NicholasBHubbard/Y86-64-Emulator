@@ -25,9 +25,9 @@
 (u:defclosure register-table
   "Lexical closure over the Y86-64 static register table. This closure uses
 LOL:DLAMBDA to provide various function keywords for dynamically dispatching a
-query to the register table. 
+query function to the register table. 
 
-Documentation for the each dispatch keyword:
+Documentation for all the provided dispatch keywords:
 
 :id-p id
   Return T if ID is a valid Y86-64 register id and return NIL otherwise.
