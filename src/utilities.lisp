@@ -7,7 +7,8 @@
   (:export #:internal-error
            #:const
            #:make-keyword
-           #:defstruct-read-only))
+           #:defstruct-read-only
+           #:defclosure))
 
 (in-package #:utilities)
 
@@ -44,3 +45,17 @@
            ,@(append-read-only (rest options)))
         `(defstruct ,name
            ,@(append-read-only options)))))
+
+;;; ===============================================
+
+(defmacro defclosure (name &body body)
+  "Bind a lexical closure to a function symbol named NAME. BODY should denote a
+form that returns a LAMBDA."
+  (let ((forms (gensym "forms"))
+        (_ (gensym "_"))
+        (docstring (gensym "docstring")))
+    `(multiple-value-bind (,forms ,_ ,docstring)
+         (a:parse-body ,body :documentation t)
+       (declare (ignore ,_))
+       (setf (symbol-function ',name) ,@body)
+       (setf (documentation ',name 'function) ,docstring))))
