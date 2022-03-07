@@ -34,12 +34,12 @@
   (type  nil :type asm-symbol-type)
   (value nil :type (unsigned-byte 64)))
 
-;;; ==================== Conditions ====================
+;;; ==================== Error Conditions ====================
 
 (define-condition undefined-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type asm-symbol)
    (table       :initarg :table       :reader table       :type hash-table))
-  (:documentation "Condition signaled when trying to access a symbol that has not been defined.")
+  (:documentation "Condition signaled when attempting to access a symbol that has not been defined.")
   (:report (lambda (c s)
              (with-slots (symbol-name)
                  c
@@ -48,7 +48,7 @@
 (define-condition duplicate-symbol (error)
   ((symbol-name :initarg :symbol-name :reader symbol-name :type asm-symbol)
    (table       :initarg :table       :reader table       :type hash-table))
-  (:documentation "Condition signaled when trying to redefine an existing symbol.")
+  (:documentation "Condition signaled when attempting to redefine an existing symbol.")
   (:report (lambda (c s)
              (with-slots (symbol-name)
                  c
