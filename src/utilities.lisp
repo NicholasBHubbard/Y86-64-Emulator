@@ -29,7 +29,7 @@
 
 (defun make-keyword (name)
   "Interns the string designated by NAME in the KEYWORD package."
-  (intern (string-upcase (string name)) :keyword))
+  (a:make-keyword (string-upcase name)))
 
 ;;; ===============================================
 
