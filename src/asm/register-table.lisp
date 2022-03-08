@@ -1,7 +1,3 @@
-;;;; This package exists to export the *REGISTER-TABLE* special variable which
-;;;; is a lexical closure that can be used to dynamically query the static and
-;;;; immutable Y86-64 register table.
-
 (defpackage register-table
   (:use #:cl)
   (:local-nicknames (#:a #:alexandria))
@@ -85,7 +81,7 @@ Documentation for all the provided dispatch keywords:
            (make-entry :id #xF :name :NOREG))))
     (lol:dlambda
       (:id-p (id)
-        (if (member (first inputs) (mapcar #'entry-id register-table) :test #'=)
+        (if (member id (mapcar #'entry-id register-table) :test #'=)
             t))
       
       (:register-name-p (reg)
