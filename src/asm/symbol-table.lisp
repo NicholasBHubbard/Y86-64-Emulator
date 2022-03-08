@@ -96,14 +96,14 @@ Documentation for all the provided dispatch keywords:
             (error 'duplicate-symbol :symbol-name name :table symbol-table)))
 
       (:symbol-value (name)
-        (lol:aif (nth-value 1 (gethash name symbol-table))
-                 (entry-value it)
+        (lol:aif (gethash name symbol-table)
+                 (entry-value lol:it)
                  (error 'undefined-symbol :symbol-name name :table symbol-table)))
       
       (:symbol-type (name)
-        (lol:aif (nth-value 1 (gethash symbol-name symbol-table))
-                 (entry-type it)
-                 (error 'undefined-symbol :symbol-name it :table symbol-table)))
+        (lol:aif (gethash name symbol-table)
+                 (entry-type lol:it)
+                 (error 'undefined-symbol :symbol-name name :table symbol-table)))
 
       (:clear-table ()
         (setf symbol-table (make-hash-table :test #'equal))))))

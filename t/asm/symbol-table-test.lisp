@@ -13,17 +13,14 @@
   (run! 'symbol-table-suite))
 
 (defmacro test-wfst (test-name &body body)
-  "Same as fiveam:test but automatically clear the symbol table after running
-the test."
-  `(progn
-     (fiveam:test ,test-name ,@body)
-     (symbol-table :clear-table)))
+  "Same as FIVEAM:TEST but clear the symbol table before running the test."
+  `(fiveam:test ,test-name (progn (symbol-table :clear-table) ,@body)))
 
 ;;; Tests
 
 (test-wfst entry-p-and-insert  
   (is-true (progn
-             (symbol-table :insert "FOO" :U 0)
+             (symbol-table :insert "FOO" :UNDEF 0)
              (symbol-table :entry-p "FOO"))))
 
 (test-wfst entry-p-false
@@ -32,12 +29,12 @@ the test."
 (test-wfst insert-signals-duplicate-symbol
   (signals duplicate-symbol
     (progn
-      (symbol-table :insert "FOO" :U 0)
-      (symbol-table :insert "FOO" :U 1000))))
+      (symbol-table :insert "FOO" :UNDEF 0)
+      (symbol-table :insert "FOO" :UNDEF 1000))))
 
 (test-wfst symbol-value
   (is-true (progn
-             (symbol-table :insert "FOO" :U 12)
+             (symbol-table :insert "FOO" :UNDEF 12)
              (= 12 (symbol-table :symbol-value "FOO")))))
 
 (test-wfst symbol-value-signals-undefined-symbol
@@ -45,8 +42,8 @@ the test."
 
 (test-wfst symbol-type
   (is-true (progn
-             (symbol-table :insert "FOO" :U 0)
-             (eql :U (symbol-table :symbol-type "FOO")))))
+             (symbol-table :insert "FOO" :UNDEF 0)
+             (eql :UNDEF (symbol-table :symbol-type "FOO")))))
 
 (test-wfst symbol-type-signals-undefined-symbol
   (signals undefined-symbol (symbol-table :symbol-type "FOO")))
