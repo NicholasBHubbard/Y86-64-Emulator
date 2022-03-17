@@ -1,70 +1,202 @@
-;;;; Provide functions involved in parsing the Y86-64 assembly language.
+;;;; Z86-64 assembly language parsing.
 
 (defpackage #:parser
-  (:use #:cl #:maxpc #:maxpc.char #:maxpc.digit)
-  (:import-from #:opcode-table #:*opcode-table*)
-  (:import-from #:register-table #:*register-table* #:register)
+  (:use #:cl
+        #:maxpc #:maxpc-extensions #:maxpc.char #:maxpc.digit
+        #:symbol-table
+        #:opcode-table
+        #:register-table) 
   (:local-nicknames (#:a #:alexandria))
-  (:export #:parse-source-line
-           #:parse-success-p
-           #:parse-failure))
+  (:export #:parse-asm-file
+           #:parse-failure
+           #:instruction
+           #:label
+           #:comment))
 
 (in-package #:parser)
 
-;;; ==================== Interface ====================
+;;; ----------------------------------------------------
 
-(defvar *source-line* nil)
+(defparameter *current-source-line* nil)
 
-(defparameter *line-number* nil)
+(defparameter *current-line-number* nil)
 
-(defun parse-source-line (input-string line-number)
-  (let ((*source-line* input-string)
-        (*line-number* line-number))
-    (parse input-string (=source-line))))
+;;; ----------------------------------------------------
 
-(defun parse-success-p (input parser)
-  "T if applying PARSER to INPUT results in a successful parse, and consumes all
-of INPUT. NIL otherwise."
-  (multiple-value-bind (_ matched end-of-input) (parse input parser)
-    (declare (ignore _))
-    (and matched end-of-input)))
+(defun parse-asm-file (file-or-stream)
+  (flet ((parse-file (stream)
+           (loop :for source-line = (str:trim (read-line stream nil))
+                 :for line-number :from 1
+                 :while source-line
+                 :collect (let ((*current-source-line* source-line)
+                                (*current-line-number* line-number))
+                            (handler-case
+                                (parse source-line
+                                       (case (determine-source-line-type source-line)
+                                         (:instruction (=instruction-source-line))
+                                         (:label       (=label-source-line))
+                                         (:comment     (=comment-source-line))
+                                         (:blank       (?blank-line))
+                                         (t (error 'u:internal-error :reason "Unreachable code"))))
+                              (parse-failure (pf) (progn
+                                                    (report-parse-failure pf)
+                                                    (return-from parse-asm-file nil))))))))
+    (etypecase file-or-stream
+      (string (with-open-file (stream file-or-stream) (parse-file stream)))
+      (stream (parse-file file-or-stream)))))
 
-;;; ==================== Parse Failure Condition ====================
+;;; ----------------------------------------------------
 
 (define-condition parse-failure (error)
-  ((input-string  :initarg :input-string  :reader input-string  :type string)
-   (fail-position :initarg :fail-position :reader fail-position :type integer)
-   (line-number   :initarg :line-number   :reader line-number   :type integer)
-   (expected      :initarg :expected      :reader expected      :type string))
+  ((input-string  :initarg :input-string  :reader parse-failure-input-string  :type string)
+   (fail-position :initarg :fail-position :reader parse-failure-fail-position :type integer)
+   (line-number   :initarg :line-number   :reader parse-failure-line-number   :type integer)
+   (expected      :initarg :expected      :reader parse-failure-expected      :type string))
   (:documentation "Condition signaled upon a parse failure.")
-  (:report (lambda (c s)
-             (with-slots (input-string fail-position line-number expected)
-                 c
-               (format s "Parse failure at line ~a:~%~vtv~% ~a~%Expected: ~a"
-                       line-number fail-position input-string expected)))))
+  (:report (lambda (c s) (report-parse-failure c s))))
 
-;;; ==================== Types ====================
+(defmethod report-parse-failure ((pf parse-failure) &optional stream)
+  "Print parse failure diagnostic to STREAM. If STREAM is null print to stderr."
+  (with-slots (input-string fail-position line-number expected)
+      pf
+    (format (or stream *error-output*)
+            "Parse failure on line ~a:~%  ~a~%~vt ^~%Expected: ~a"
+            line-number input-string fail-position expected)))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun scalep (int)
-    (member int '(1 2 4 8) :test #'=)))
+;;; ----------------------------------------------------
+
+(deftype source-line-type ()
+  "There are five different Z86-64 asm source line types.
+:INSTRUCTION, :LABEL, :DIRECTIVE, :COMMENT, or :BLANK."
+  '(member :INSTRUCTION :LABEL :DIRECTIVE :COMMENT :BLANK))
+
+(deftype operand ()
+  "A Z86-64 operand can be a register, immediate, symbol, or memory."
+  '(or register immediate symbol memory))
+
+(deftype immediate ()
+  "A Z86-64 immediate is a signed 64 bit integer."
+  '(signed-byte 64))
+
+(deftype memory-scale ()
+  '(and (signed-byte 8) (member 1 2 4 8)))
 
 (u:defstruct-read-only memory
-  "Type of a Y86-64 memory operand."
-  (offset 0 :type (signed-byte 64))
-  (base :NOREG :type register)
-  (index :NOREG :type register)
-  (scale  1 :type (and (unsigned-byte 8) (satisfies scalep))))
+  "Type of a Z86-64 memory operand."
+  (offset 0      :type immediate)
+  (base   :NOREG :type register)
+  (index  :NOREG :type register)
+  (scale  1      :type memory-scale))
 
-(u:defstruct-read-only source-line
-  "Struct to carry the fields of a Y86-64 asm source line."
-  (label       (error "Must provide :LABEL"))
-  (mnemonic    (error "Must provide :MNEMONIC"))
-  (operand1    (error "Must provide :OPERAND1"))
-  (operand2    (error "Must provide :OPERAND2"))
-  (eol-comment (error "Must provide :EOL-COMMENT")))
+;;; ----------------------------------------------------
 
-;;; ==================== Custom Parsers ====================
+(defclass source-line ()
+  ((type        :initarg :type        :reader source-line-type        :type source-line-type)
+   (line-number :initarg :line-number :reader source-line-line-number :type (unsigned-byte 64)))
+  (:documentation "Base class for Z86-64 asm source lines."))
+
+(defclass instruction (source-line)
+  ((mnemonic :initarg :mnemonic :reader instruction-mnemonic :type mnemonic)
+   (operand1 :initarg :operand1 :reader instruction-operand1 :type (or null operand))
+   (operand2 :initarg :operand2 :reader instruction-operand2 :type (or null operand))
+   (comment  :initarg :comment  :reader instruction-comment  :type (or null string)))
+  (:documentation "A source line for a Z86-64 asm instruction."))
+
+(defun make-instruction (&key line-number mnemonic operand1 operand2 comment)
+  (check-type line-number (unsigned-byte 64))
+  (check-type mnemonic    mnemonic)
+  (check-type operand1    (or null operand))
+  (check-type operand2    (or null operand))
+  (check-type comment     (or null string))
+  (make-instance 'instruction :type :instruction
+                              :line-number line-number
+                              :mnemonic mnemonic
+                              :operand1 operand1
+                              :operand2 operand2
+                              :comment comment))
+
+(defclass label (source-line)
+  ((symbol  :initarg :symbol  :reader label-symbol  :type asm-symbol)
+   (comment :initarg :comment :reader label-comment :type (or null string)))
+  (:documentation "A source line for a Z86-64 label."))
+
+(defun make-label (&key line-number symbol comment)
+  (check-type line-number (unsigned-byte 64))
+  (check-type symbol      asm-symbol)
+  (check-type comment     (or null string))
+  (make-instance 'label :type :label
+                        :line-number line-number
+                        :symbol symbol
+                        :comment comment))
+
+(defclass comment (source-line)
+  ((comment :initarg :comment :reader comment-comment :type string))
+  (:documentation "A comment source line."))
+
+(defun make-comment (&key line-number comment)
+  (check-type line-number (unsigned-byte 64))
+  (check-type comment     string)
+  (make-instance 'label :type :comment
+                        :line-number line-number
+                        :comment comment))
+
+;;; ----------------------------------------------------
+
+(defun determine-source-line-type (source-line)
+  "Return a SOURCE-LINE-TYPE keyword that denotes the type of SOURCE-LINE. If
+SOURCE-LINE is erroneous signal a PARSE-FAILURE condition."
+  (cond
+    ((parse-success-p source-line (=mnemonic))   :INSTRUCTION)
+    ((parse-success-p source-line (=label))      :LABEL)
+    ((parse-success-p source-line (=comment))    :COMMENT)
+    ((parse-success-p source-line (?blank-line)) :BLANK)
+    (t (parse source-line (?fail (error 'parse-failure
+                                        :input-string source-line
+                                        :fail-position (get-input-position)
+                                        :line-number *current-line-number*
+                                        ::expected "Mnemonic, label, directive, or comment"))))))
+
+(defun =instruction-source-line ()
+  "Parser for an instruction source line. On success return an
+INSTRUCTION-SOURCE-LINE struct and on failure signal a PARSE-FAILURE condition."
+  (%let* ((mnemonic (%or-fail "Mnemonic" (=mnemonic)))
+          (_ (%any (?space-or-tab)))
+          (operands (case (opcode-table :mnemonic-type mnemonic)
+                      (:N  (?null))
+                      (:R  (%or-fail "Register operand" (=register-operand)))
+                      (:M  (%or-fail "Memory operand" (=memory-operand)))
+                      (:RR (%or-fail "Register,Register operands" (=register-register-operands)))
+                      (:IR (%or-fail "Immediate,Register operands" (=immediate-register-operands)))))
+          (_ (%any (?space-or-tab)))
+          (comment (%maybe (=comment)))
+          (_ (%or-fail "End of source line" (?end))))
+    (make-instruction :mnemonic mnemonic
+                      :operand1 (getf operands :operand1)
+                      :operand2 (getf operands :operand2)
+                      :comment comment
+                      :line-number *current-line-number*)))
+
+(defun =label-source-line ()
+  "Parser for a label source line. On success return a LABEL-SOURCE-LINE and on
+failure signal a PARSE-FAILURE condition."
+  (%let* ((symbol (%or-fail "Label" (%prog1 (=symbol-name) (?eq #\:))))
+          (_ (%any (?space-or-tab)))
+          (comment (%maybe (=comment)))
+          (_ (%or-fail "End of source line" (?end))))
+    (make-label :symbol symbol
+                :comment comment
+                :line-number *current-line-number*)))
+
+(defun =comment-source-line ()
+  "Parser of a comment source line. On success return a COMMENT-SOURCE-LINE and
+on failure signal a PARSE-FAILURE condition."
+  (%let* ((comment (%or-fail "Comment" (=comment)))
+          (_ (%and (?space-or-tab)))
+          (_ (%or-fail "End of source line" (?end))))
+    (make-comment :comment comment
+                  :line-number *current-line-number*)))
+
+;;; ----------------------------------------------------
 
 (defmacro %or-fail (expected parser)
   "If PARSER succeeds return it's output, otherwise signal a PARSE-FAILURE
@@ -75,142 +207,55 @@ condition with an :EXPECTED field of EXPECTED."
                               :line-number *current-line-number*
                               :expected ,expected))))
 
-(defun %bind (parser make-parser)
-  "Monadic bind function."
-  (lambda (input)
-    (multiple-value-bind (rest value) (funcall parser input)
-      (when rest
-        (funcall (funcall make-parser value) rest)))))
-
-(defmacro %let* (bindings &body body)
-  "Convenience macro around chaining together %BIND calls."
-  (if (null bindings)
-      (let ((input (gensym "input")))
-        `(lambda (,input) (values ,input (progn ,@body))))
-      (let ((var (first (first bindings)))
-            (parser (second (first bindings))))
-        `(%bind ,parser
-                (lambda (,var)
-                  ,(when (string= var "_")
-                     `(declare (ignore ,var)))
-                  (%let* ,(rest bindings) ,@body))))))
-
-(defun ?null ()
-  "Always succeed and return NIL without consuming any input."
-  (%maybe (?satisfies (u:const nil))))
-
-(defmacro =eq (x &optional (parser '(=element)))
-  "Like ?EQ but return the matching input."
-  `(=subseq (?eq ,x ,parser)))
-
-(defmacro =not (parser)
-  "Like ?NOT but return the matching input."
-  `(=subseq (?not ,parser)))
-
-(defmacro =satisfies (test &optional (parser '(=element)))
-  "Like ?SATISFIES but return the matching input."
-  `(=subseq (?satisfies ,test ,parser)))
-
-(defmacro =as-keyword (parser)
-  "Transform the result of PARSER into a keyword."
-  `(=transform ,parser #'u:make-keyword))
-
-(defmacro %some-string (parser)
-  "Match PARSER is sequence one or more times and concatenate the results as a
-string."
-  `(=transform (%some ,parser) (a:curry #'format nil "~{~a~}")))
-
-(defmacro %any-string (parser)
-  "Match PARSER is sequence one or more times and concatenate the results as a
-string."
-  `(=transform (%any ,parser) (a:curry #'format nil "~{~a~}")))
-
-(defmacro =prog1 (&rest parsers)
-  "Parse PARSERS in sequence"
-  `(=transform (=list ,@parsers) #'first))
-
-(defmacro =progn (&rest parsers)
-  "Parse PARSERS in sequence and return the result of the final parser."
-  `(=transform (=list ,@parsers) #'a:last-elt))
-
 (defun ?space-or-tab ()
-  "Parse either a space or tab character."
-  (let ((*whitespace* '(#\  #\Tab)))
+  "Parser for either a space or tab character."
+  (let ((*whitespace* '(#\Tab #\ )))
     (?whitespace)))
 
-(defun ?space-or-tab-or-newline ()
-  "Parse either a space, tab, or newline character."
-  (let ((*whitespace* '(#\  #\Tab #\Newline)))
-    (?whitespace)))
+(defun ?blank-line ()
+  "Parse a line that only contains space and tab characters."
+  (?seq (%any (?space-or-tab)) (?end)))
 
-;;; ==================== Basic Grammar Elements ====================
+(defun =comment ()
+  "Parser for end of line comments starting with a #\# character."
+  (%let* ((pound (=eq #\#))
+          (comment (=any (=not (?eq #\Newline)))))
+    (concatenate 'string pound comment)))
 
 (defun =symbol-name ()
-  "Parser for symbol names."
+  "Parser for Z86-64 symbol names."
   (=satisfies #'symbol-table:symbol-name-p
-      (%some-string (%or (=eq #\.)
-                         (=eq #\-)
-                         (=satisfies #'alphanumericp)))))
+              (=some (%or (=eq #\.)
+                          (=eq #\-)
+                          (=satisfies #'alphanumericp)))))
 
 (defun =label ()
-  "Parser for labels. Labels are symbol names followed by a colon."
-  (=prog1 (=symbol-name) (?eq #\:)))
+  "Parser for a Z86-64 asm label."
+  (%prog1 (=symbol-name) (?eq #\:)))
 
 (defun =mnemonic ()
   "Parse a Y86-64 mnemonic."
   (=as-keyword
    (=satisfies
-       (a:curry #'funcall *opcode-table* :mnemonic-p)
-       (%some-string (=satisfies #'alpha-char-p)))))
+    (a:curry #'opcode-table :mnemonic-p)
+    (=some (=satisfies #'alpha-char-p)))))
 
 (defun =register ()
   "Parser for register operands."
   (=as-keyword
-   (=progn (?eq #\%)
+   (%progn (?eq #\%)
            (=satisfies
-               (a:curry #'funcall *register-table* :register-name-p)
-               (%some-string (=satisfies #'alphanumericp))))))
+            (a:curry #'register-table :register-name-p)
+            (=some (=satisfies #'alphanumericp))))))
 
 (defun =immediate ()
   "Parser for immediate operands."
   (%let* ((_ (?eq #\$))
           (negative (%maybe (=eq #\-)))
-          (num (%or (=progn (?string "0x") (=natural-number 16))
-                    (=progn (?string "0b") (=natural-number 2))
+          (num (%or (%progn (?string "0x") (=natural-number 16))
+                    (%progn (?string "0b") (=natural-number 2))
                     (=natural-number 10))))
     (if negative (- num) num)))
-
-(defun =eol-comment ()
-  "Parser for end of line comments starting with a #\# character."
-  (%let* ((pound (=eq #\#))
-          (comment (%any-string (=not (?eq #\Newline)))))
-    (concatenate 'string pound comment)))
-
-;;; ==================== Source line Parser ====================
-
-(defun =source-line ()
-  "Parse a source line and on success return a SOURCE-LINE struct and on failure
-signal a PARSE-FAILURE condition."
-  (%let* ((label (%maybe (=label)))
-          (_ (if label
-                 (%or-fail "Whitespace" (%some (?space-or-tab-or-newline)))
-                 (?null)))
-          (mnemonic (%or-fail "Mnemonic" (=mnemonic)))
-          (_ (%any (?space-or-tab)))
-          (operands (case (funcall *opcode-table* :mnemonic-type mnemonic)
-                      (:N  (?null))
-                      (:R  (%or-fail "Register operand" (=register-operand)))
-                      (:M  (%or-fail "Memory operand" (=memory-operand)))
-                      (:RR (%or-fail "Register,Register operands" (=register-register-operands)))
-                      (:IR (%or-fail "Immediate,Register operands" (=immediate-register-operands)))))
-          (_ (%any (?space-or-tab)))
-          (eol-comment (%maybe (=eol-comment)))
-          (_ (%or-fail "End of source line" (?end))))
-    (make-source-line :label label
-                      :mnemonic mnemonic
-                      :operand1 (getf operands :operand1)
-                      :operand2 (getf operands :operand2)
-                      :eol-comment eol-comment)))
 
 (defun =register-operand ()
   "Parse the operand for an instruction of type :R."
@@ -246,35 +291,35 @@ signal a PARSE-FAILURE condition."
               (lambda (mem) (list :operand1 mem :operand2 nil))))
 
 (defun =absolute-memory ()
-  "Parse an absolute memory address into a MEMORY struct."
+  "Parse an absolute memory address into a MEMORY-OPERAND struct."
   (=transform (=immediate)
-              (lambda (imm) (make-memory :offset imm))))
+              (lambda (imm) (make-memory-operand :offset imm))))
 
 (defun =indirect-memory ()
   "Parse an indirect memory address into a MEMORY struct."
   (=transform (=register)
-              (lambda (reg) (make-memory :base reg))))
+              (lambda (reg) (make-memory-operand :base reg))))
 
 (defun =base-displacement-memory ()
-  "Parse a base+displacement memory address into a MEMORY struct."
+  "Parse a base+displacement memory address into a MEMORY-OPERAND struct."
   (%let* ((offset (=immediate))
           (_ (?eq #\())
           (base (=register))
           (_ (?eq #\))))
-    (make-memory :offset offset :base base)))
+    (make-memory-operand :offset offset :base base)))
 
 (defun =indexed-memory ()
-  "Parse an indirect memory address into a MEMORY struct."
+  "Parse an indirect memory address into a MEMORY-OPERAND struct."
   (%let* ((offset (%maybe (=immediate)))
           (_ (?eq #\())
           (base (=register))
           (_ (?eq #\,))
           (index (=register))
           (_ (?eq #\))))
-    (make-memory :offset (or offset 0) :base base :index index)))
+    (make-memory-operand :offset (or offset 0) :base base :index index)))
 
 (defun =scaled-indexed-memory ()
-  "Parse a scaled indexed memory address into a MEMORY struct."
+  "Parse a scaled indexed memory address into a MEMORY-OPERAND struct."
   (%let* ((offset (%maybe (=immediate)))
           (_ (?eq #\())
           (base (%maybe (=register)))
@@ -283,7 +328,7 @@ signal a PARSE-FAILURE condition."
           (_ (?eq #\,))
           (scale (%or (=eq #\1) (=eq #\2) (=eq #\4) (=eq #\8)))
           (_ (?eq #\))))
-    (make-memory :offset (or offset 0)
-                 :base (or base :NOREG)
-                 :index index
-                 :scale (parse-integer scale))))
+    (make-memory-operand :offset (or offset 0)
+                         :base (or base :NOREG)
+                         :index index
+                         :scale (parse-integer scale))))
