@@ -71,8 +71,8 @@
   '(member :INSTRUCTION :LABEL :DIRECTIVE :COMMENT :BLANK))
 
 (deftype operand ()
-  "A Z86-64 operand can be a register, immediate, symbol, or memory."
-  '(or register immediate relative-address asm-symbol))
+  "A Z86-64 operand can be a register, immediate, symbol, or relative address."
+  '(or register immediate relative-address))
 
 (deftype immediate ()
   "A Z86-64 immediate is a signed 64 bit integer."
@@ -83,7 +83,7 @@
 
 (u:defstruct-read-only relative-address
   "Type of a Z86-64 relative address operand."
-  (offset 0      :type immediate)
+  (offset 0      :type (or immediate asm-symbol))
   (base   :NOREG :type register)
   (index  :NOREG :type register)
   (scale  1      :type memory-scale))
@@ -291,26 +291,26 @@ condition with an :EXPECTED field of EXPECTED."
               (lambda (mem) (list :operand1 mem :operand2 nil))))
 
 (defun =absolute-memory ()
-  "Parse an absolute memory address into a MEMORY-OPERAND struct."
-  (=transform (=immediate)
+  "Parse an absolute memory address into a RELATIVE-ADDRESS struct."
+  (=transform (%or (=symbol-name) (=immediate))
               (lambda (imm) (make-relative-address :offset imm))))
 
 (defun =indirect-memory ()
-  "Parse an indirect memory address into a MEMORY struct."
+  "Parse an indirect memory address into a RELATIVE-ADDRESS struct."
   (=transform (=register)
               (lambda (reg) (make-relative-address :base reg))))
 
 (defun =base-displacement-memory ()
-  "Parse a base+displacement memory address into a MEMORY-OPERAND struct."
-  (%let* ((offset (=immediate))
+  "Parse a base+displacement memory address into a RELATIVE-ADDRESS struct."
+  (%let* ((offset (%or (=symbol-name) (=immediate)))
           (_ (?eq #\())
           (base (=register))
           (_ (?eq #\))))
     (make-relative-address :offset offset :base base)))
 
 (defun =indexed-memory ()
-  "Parse an indirect memory address into a MEMORY-OPERAND struct."
-  (%let* ((offset (%maybe (=immediate)))
+  "Parse an indirect memory address into a RELATIVE-ADDRESS struct."
+  (%let* ((offset (%maybe (%or (=symbol-name) (=immediate))))
           (_ (?eq #\())
           (base (=register))
           (_ (?eq #\,))
@@ -319,8 +319,8 @@ condition with an :EXPECTED field of EXPECTED."
     (make-relative-address :offset (or offset 0) :base base :index index)))
 
 (defun =scaled-indexed-memory ()
-  "Parse a scaled indexed memory address into a MEMORY-OPERAND struct."
-  (%let* ((offset (%maybe (=immediate)))
+  "Parse a scaled indexed memory address into a RELATIVE-ADDRESS struct."
+  (%let* ((offset (%maybe (%or (=symbol-name) (=immediate))))
           (_ (?eq #\())
           (base (%maybe (=register)))
           (_ (?eq #\,))
