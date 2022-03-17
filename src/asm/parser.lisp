@@ -72,7 +72,7 @@
 
 (deftype operand ()
   "A Z86-64 operand can be a register, immediate, symbol, or memory."
-  '(or register immediate symbol memory))
+  '(or register immediate relative-address asm-symbol))
 
 (deftype immediate ()
   "A Z86-64 immediate is a signed 64 bit integer."
@@ -81,8 +81,8 @@
 (deftype memory-scale ()
   '(and (signed-byte 8) (member 1 2 4 8)))
 
-(u:defstruct-read-only memory
-  "Type of a Z86-64 memory operand."
+(u:defstruct-read-only relative-address
+  "Type of a Z86-64 relative address operand."
   (offset 0      :type immediate)
   (base   :NOREG :type register)
   (index  :NOREG :type register)
@@ -293,12 +293,12 @@ condition with an :EXPECTED field of EXPECTED."
 (defun =absolute-memory ()
   "Parse an absolute memory address into a MEMORY-OPERAND struct."
   (=transform (=immediate)
-              (lambda (imm) (make-memory-operand :offset imm))))
+              (lambda (imm) (make-relative-address :offset imm))))
 
 (defun =indirect-memory ()
   "Parse an indirect memory address into a MEMORY struct."
   (=transform (=register)
-              (lambda (reg) (make-memory-operand :base reg))))
+              (lambda (reg) (make-relative-address :base reg))))
 
 (defun =base-displacement-memory ()
   "Parse a base+displacement memory address into a MEMORY-OPERAND struct."
@@ -306,7 +306,7 @@ condition with an :EXPECTED field of EXPECTED."
           (_ (?eq #\())
           (base (=register))
           (_ (?eq #\))))
-    (make-memory-operand :offset offset :base base)))
+    (make-relative-address :offset offset :base base)))
 
 (defun =indexed-memory ()
   "Parse an indirect memory address into a MEMORY-OPERAND struct."
@@ -316,7 +316,7 @@ condition with an :EXPECTED field of EXPECTED."
           (_ (?eq #\,))
           (index (=register))
           (_ (?eq #\))))
-    (make-memory-operand :offset (or offset 0) :base base :index index)))
+    (make-relative-address :offset (or offset 0) :base base :index index)))
 
 (defun =scaled-indexed-memory ()
   "Parse a scaled indexed memory address into a MEMORY-OPERAND struct."
@@ -328,7 +328,7 @@ condition with an :EXPECTED field of EXPECTED."
           (_ (?eq #\,))
           (scale (%or (=eq #\1) (=eq #\2) (=eq #\4) (=eq #\8)))
           (_ (?eq #\))))
-    (make-memory-operand :offset (or offset 0)
-                         :base (or base :NOREG)
-                         :index index
-                         :scale (parse-integer scale))))
+    (make-relative-address :offset (or offset 0)
+                           :base (or base :NOREG)
+                           :index index
+                           :scale (parse-integer scale))))
