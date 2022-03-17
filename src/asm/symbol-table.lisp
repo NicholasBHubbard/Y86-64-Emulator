@@ -106,5 +106,9 @@ Documentation for all the provided dispatch keywords:
                  (error 'undefined-symbol :symbol-name name :table symbol-table)))
 
       (:clear-table ()
-        (setf symbol-table (make-hash-table :test #'equal))))))
+        (setf symbol-table (make-hash-table :test #'equal)))
+
+      (t (&rest ignore)
+        (declare (ignore ignore))
+        (error 'u:internal-error :reason "Illegal SYMBOL-TABLE function keyword.")))))
 

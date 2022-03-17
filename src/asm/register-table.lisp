@@ -135,4 +135,8 @@ Documentation for all the provided dispatch keywords:
              (entry-name
               (find-if
                (a:compose (a:curry #'= id) #'entry-id)
-               register-table)))))))
+               register-table))))
+
+      (t (&rest ignore)
+        (declare (ignore ignore))
+        (error 'u:internal-error :reason "Illegal REGISTER-TABLE function keyword.")))))

@@ -1,7 +1,3 @@
-;;;; This package exists to export the *OPCODE-TABLE* special variable which
-;;;; is a lexical closure that can be used to dynamically query the static and
-;;;; immutable Y86-64 opcode table.
-
 (defpackage #:opcode-table
   (:use #:cl)
   (:local-nicknames (#:a #:alexandria))
@@ -35,7 +31,7 @@
 
 ;;; ==================== Opcode Table Definition ====================
 
-(u:defclosure opcode-table ()
+(u:defclosure opcode-table
   "Lexical closure over the Y86-64 static opcode table. This closure uses
 LOL:DLAMBDA to provide various function keywords for dynamically dispatching a
 query function to the opcode table. 
@@ -363,4 +359,8 @@ Documentation for all the provided dispatch keywords:
                       (remove-if-not
                        (a:compose (a:curry #'= size) #'entry-size)
                        opcode-table))
-              #'string<)))))
+              #'string<))
+
+      (t (&rest ignore)
+        (declare (ignore ignore))
+        (error 'u:internal-error :reason "Illegal OPCODE-TABLE function keyword.")))))
