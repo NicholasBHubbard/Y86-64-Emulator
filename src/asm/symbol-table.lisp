@@ -57,7 +57,7 @@
 ;;; ==================== Symbol Table Definition ====================
 
 (u:defclosure symbol-table
-  "Lexical closure over the Y86-64 symbol table. This closure uses LOL:DLAMBDA
+  "Lexical closure over the Z86-64 symbol table. This closure uses LOL:DLAMBDA
 to provide various function keywords for dynamically dispatching a query or
 mutation function to the symbol table. 
 
