@@ -65,7 +65,7 @@ Documentation for all the provided dispatch keywords:
 
 :entry-p name  
   Return T if NAME is the name of an entry in the symbol table and return NIL
-  otherwise
+  otherwise.
 
 :insert name type value
   Insert a symbol named NAME with type TYPE and value VALUE into the symbol
