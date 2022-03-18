@@ -11,7 +11,12 @@
            #:parse-failure
            #:instruction
            #:label
-           #:comment))
+           #:comment
+           #:relative-address
+           #:relative-address-offset
+           #:relative-address-base
+           #:relative-address-index
+           #:relative-address-scale))
 
 (in-package #:parser)
 
