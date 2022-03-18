@@ -152,6 +152,32 @@
 
 ;;; ----------------------------------------------------
 
+(defmacro %or-fail (expected parser)
+  "If PARSER succeeds return it's output, otherwise signal a PARSE-FAILURE
+condition with an :EXPECTED field of EXPECTED."
+  `(%or ,parser (?fail (error 'parse-failure
+                              :input-string *current-source-line*
+                              :fail-position (get-input-position)
+                              :line-number *current-line-number*
+                              :expected ,expected))))
+
+(defun ?space-or-tab ()
+  "Parser for either a space or tab character."
+  (let ((*whitespace* '(#\Tab #\ )))
+    (?whitespace)))
+
+(defun ?blank-line ()
+  "Parse a line that only contains space and tab characters."
+  (?seq (%any (?space-or-tab)) (?end)))
+
+(defun =comment ()
+  "Parser for end of line comments starting with a #\# character."
+  (%let* ((pound (=eq #\#))
+          (comment (=any (=not (?eq #\Newline)))))
+    (concatenate 'string pound comment)))
+
+;;; ----------------------------------------------------
+
 (defun determine-source-line-type (source-line)
   "Return a SOURCE-LINE-TYPE keyword that denotes the type of SOURCE-LINE. If
 SOURCE-LINE is erroneous signal a PARSE-FAILURE condition."
@@ -207,30 +233,6 @@ on failure signal a PARSE-FAILURE condition."
                   :line-number *current-line-number*)))
 
 ;;; ----------------------------------------------------
-
-(defmacro %or-fail (expected parser)
-  "If PARSER succeeds return it's output, otherwise signal a PARSE-FAILURE
-condition with an :EXPECTED field of EXPECTED."
-  `(%or ,parser (?fail (error 'parse-failure
-                              :input-string *current-source-line*
-                              :fail-position (get-input-position)
-                              :line-number *current-line-number*
-                              :expected ,expected))))
-
-(defun ?space-or-tab ()
-  "Parser for either a space or tab character."
-  (let ((*whitespace* '(#\Tab #\ )))
-    (?whitespace)))
-
-(defun ?blank-line ()
-  "Parse a line that only contains space and tab characters."
-  (?seq (%any (?space-or-tab)) (?end)))
-
-(defun =comment ()
-  "Parser for end of line comments starting with a #\# character."
-  (%let* ((pound (=eq #\#))
-          (comment (=any (=not (?eq #\Newline)))))
-    (concatenate 'string pound comment)))
 
 (defun =symbol-name ()
   "Parser for Z86-64 symbol names."
