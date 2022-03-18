@@ -65,13 +65,12 @@
 ;;; ===============================================
 
 (defmacro defclosure (name &body body)
-  "Bind a lexical closure to a function symbol named NAME. BODY should denote a
-form that returns a LAMBDA."
-  (let ((forms (gensym "forms"))
-        (_ (gensym "_"))
-        (docstring (gensym "docstring")))
-    `(multiple-value-bind (,forms ,_ ,docstring)
-         (a:parse-body ,body :documentation t)
-       (declare (ignore ,_))
-       (setf (symbol-function ',name) ,@body)
+  "Bind a lexical closure to a function symbol named NAME.
+
+BODY should contain an optional docstring followed by a lambda expression."
+  (multiple-value-bind (form _ docstring)
+      (a:parse-body body :documentation t)
+    (declare (ignore _))
+    `(progn
+       (setf (symbol-function ',name) ,(first form))
        (setf (documentation ',name 'function) ,docstring))))
