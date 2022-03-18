@@ -111,4 +111,3 @@ Documentation for all the provided dispatch keywords:
       (t (&rest ignore)
         (declare (ignore ignore))
         (error 'u:internal-error :reason "Illegal SYMBOL-TABLE function keyword.")))))
-
