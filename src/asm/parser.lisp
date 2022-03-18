@@ -10,7 +10,12 @@
   (:export #:parse-asm-file
            #:parse-failure
            #:instruction
+           #:instruction-mnemonic
+           #:instruction-operand1
+           #:instruction-operand2
+           #:instruction-comment
            #:label
+           #:label-symbol
            #:comment
            #:relative-address
            #:relative-address-offset
