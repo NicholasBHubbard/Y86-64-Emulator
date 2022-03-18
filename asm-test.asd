@@ -4,7 +4,7 @@
   :maintainer "Nicholas Hubbard"
   :license "MIT"
   :version "0.1"
-  :depends-on ("asm" "fiveam" "alexandria")
+  :depends-on ("asm" "fiveam" "alexandria" "str")
   :components ((:file "t/asm/register-table-test")
                (:file "t/asm/opcode-table-test")
                (:file "t/asm/symbol-table-test")
