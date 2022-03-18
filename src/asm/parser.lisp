@@ -9,6 +9,9 @@
   (:local-nicknames (#:a #:alexandria))
   (:export #:parse-asm-file
            #:parse-failure
+           #:source-line
+           #:source-line-type
+           #:source-line-line-number
            #:instruction
            #:instruction-mnemonic
            #:instruction-operand1
@@ -17,6 +20,7 @@
            #:label
            #:label-symbol
            #:comment
+           #:comment-comment
            #:relative-address
            #:relative-address-offset
            #:relative-address-base
