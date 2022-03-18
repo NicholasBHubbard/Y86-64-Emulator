@@ -1,14 +1,14 @@
 ;;;; Testing for the definitions in src/asm/parser.lisp
 
 (defpackage parser-test
-  (:use #:cl #:fiveam #:parser)
+  (:use #:cl #:fiveam #:opcode-table #:register-table #:symbol-table #:maxpc-extensions)
   (:local-nicknames (#:a #:alexandria))
   (:import-from #:maxpc #:parse)
-  (:import-from #:opcode-table #:*opcode-table*)
-  (:import-from #:register-table #:*register-table*)
   (:export #:run-tests))
 
 (in-package #:parser-test)
+
+;;; ==================== Test Suite ====================
 
 (def-suite parser-suite
   :description "Test suite for the asm systems PARSER package.")
@@ -21,18 +21,12 @@
 ;;; ==================== Helpers ====================
 
 (defun all-succeed (parser inputs)
-  "Each input in INPUTS will be tested if it succeeds under PARSER."
-  (handler-case (every (lambda (input) (parse-success-p input parser)) inputs)
-    (parse-failure (e)
-      (declare (ignore e))
-      nil)))
+  "Each input in INPUTS will be tested if it succeeds totally under PARSER."
+  (every (lambda (input) (parse-total-success-p input parser)) inputs))
 
 (defun all-fail (parser inputs)
-  "T if all values in INPUTS fail to parse under PARSER."
-  (handler-case (notany (lambda (input) (parse-success-p input parser)) inputs)
-    (parse-failure (e)
-      (declare (ignore e))
-      t)))
+  "T if all values in INPUTS fail to parse totally under PARSER."
+  (notany (lambda (input) (parse-total-success-p input parser)) inputs))
 
 ;;; ==================== =SYMBOL-NAME ====================
 
@@ -50,7 +44,7 @@
 ;;; ==================== =LABEL ====================
 
 (test =label-succeeds
-  (is-true (parse-success-p "foo:" (parser::=label))))
+  (is-true (parse-total-success-p "foo:" (parser::=label))))
 
 (test =label-production
   (is-true (string= "foo" (parse "foo:" (parser::=label)))))
@@ -66,7 +60,7 @@
                                   (if (= 1 (random 2))
                                       (string-upcase mn)
                                       mn))
-                                (funcall *opcode-table* :all-mnemonic-strings)))))
+                                (opcode-table :all-mnemonic-strings)))))
 
 (test =mnemonic-fails
   (is-true (all-fail (parser::=mnemonic)
@@ -84,7 +78,7 @@
                                                  (string-upcase reg)
                                                  reg)))
                                     (concatenate 'string "%" reg)))
-                                (funcall *register-table* :all-register-name-strings)))))
+                                (register-table :all-register-name-strings)))))
 
 (test =register-fails
   (is-true (all-fail (parser::=register)
@@ -109,26 +103,26 @@
                 (= 171 (parse "$0xab"   (parser::=immediate)))
                 (= 10  (parse "$0b1010" (parser::=immediate))))))
 
-;;; ==================== =EOL-COMMENT ====================
+;;; ==================== =COMMENT ====================
 
-(test =eol-comment-succeeds
-  (is-true (all-succeed (parser::=eol-comment)
+(test =comment-succeeds
+  (is-true (all-succeed (parser::=comment)
                         (list "#foo" "#" "##foo" "# foo"))))
 
-(test =eol-comment-fails
-  (is-true (all-fail (parser::=eol-comment)
+(test =comment-fails
+  (is-true (all-fail (parser::=comment)
                      (list "foo" "foo#" "f#oo"))))
 
-(test =eol-comment-production
-  (is-true (and (string= "#foo" (parse "#foo" (parser::=eol-comment)))
-                (string= "###foo" (parse "###foo" (parser::=eol-comment))))))
+(test =comment-production
+  (is-true (and (string= "#foo" (parse "#foo" (parser::=comment)))
+                (string= "###foo" (parse "###foo" (parser::=comment))))))
 
 ;;; ==================== =REGISTER-OPERAND ====================
 
 (test =register-operand-succeeds
   (is-true (all-succeed (parser::=register-operand)
                         (mapcar (lambda (reg) (concatenate 'string "%" reg))
-                                (funcall *register-table* :all-register-name-strings)))))
+                                (register-table :all-register-name-strings)))))
 
 (test =register-operand-fails
   (is-true (all-fail (parser::=register-operand)
@@ -177,7 +171,7 @@
                      (list "12" "-12" "ab" "1010"))))
 
 (test =absolute-memory-production
-  (is-true (equalp (parser::make-memory :offset 12)
+  (is-true (equalp (parser::make-memory-operand :offset 12)
                    (parse "$12" (parser::=absolute-memory)))))
 
 ;;; ==================== =INDIRECT-MEMORY ====================
@@ -191,7 +185,7 @@
                      (list "foo" "%foo" "$12"))))
 
 (test =indirect-memory-production
-  (is-true (equalp (parser::make-memory :base :RAX)
+  (is-true (equalp (parser::make-memory-operand :base :RAX)
                    (parse "%rax" (parser::=indirect-memory)))))
 
 ;;; ==================== =BASE-DISPLACEMENT-MEMORY ====================
@@ -205,7 +199,7 @@
                      (list "$12 (%rax)" "$12( %rax)" "$12(%rax )" "$12( %rax )"))))
 
 (test =base-displacement-memory-production
-  (is-true (equalp (parser::make-memory :offset 12 :base :RAX)
+  (is-true (equalp (parser::make-memory-operand :offset 12 :base :RAX)
                    (parse "$12(%rax)" (parser::=base-displacement-memory)))))
 
 ;;; ==================== =INDEXED-MEMORY ====================
@@ -219,7 +213,7 @@
                      (list "$12(%rax ,%rdx)" "(%rax, %rdx)" "(%rax , %rdx)" "(%rax,%rdx" "%rax,%rdx)"))))
 
 (test =indexed-memory-production
-  (is-true (equalp (parser::make-memory :offset 12 :base :RAX :index :RDX)
+  (is-true (equalp (parser::make-memory-operand :offset 12 :base :RAX :index :RDX)
                    (parse "$12(%rax,%rdx)" (parser::=indexed-memory)))))
 
 ;;; ==================== =SCALED-INDEXED-MEMORY ====================
@@ -233,7 +227,7 @@
                      (list "(,%rax,3)" "(%rax ,%rdx,4)" "(,%rax,8"))))
 
 (test =scaled-indexed-memory-production
-  (is-true (equalp (parser::make-memory :offset 12 :base :RAX :index :RDX :scale 4)
+  (is-true (equalp (parser::make-memory-operand :offset 12 :base :RAX :index :RDX :scale 4)
                    (parse "$12(%rax,%rdx,4)" (parser::=scaled-indexed-memory)))))
 
 ;;; ==================== =MEMORY-OPERAND ====================
@@ -247,7 +241,7 @@
                      (list "%foo" "$$12" "(%rax , %rdx)" "(%rax,%rdx"))))
 
 (test =memory-operand-production
-  (is-true (equalp (list :operand1 (parser::make-memory :offset 12 :base :RAX :index :RDX :scale 4) :operand2 nil)
+  (is-true (equalp (list :operand1 (parser::make-memory-operand :offset 12 :base :RAX :index :RDX :scale 4) :operand2 nil)
                    (parse "$12(%rax,%rdx,4)" (parser::=memory-operand)))))
 
 ;;; ==================== =SOURCE-LINE ====================
@@ -272,5 +266,5 @@
                                              :mnemonic :ANDQ
                                              :operand1 :RAX
                                              :operand2 :RDX
-                                             :eol-comment "#comment")
+                                             :comment "#comment")
                    (parse "foo: andq %rax,%rdx #comment"(parser::=source-line)))))
