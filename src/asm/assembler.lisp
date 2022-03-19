@@ -7,7 +7,7 @@
 ;;; ----------------------------------------------------
 
 (defun assemble-file (file)
-  "TODO"
+  "Assemble FILE into Z86-64 machine code."
   (unwind-protect
        (let ((source-lines (parse-asm-file file)))
          (symbol-table :clear-table)
@@ -18,7 +18,7 @@
 ;;; ----------------------------------------------------
 
 (defun do-first-pass (source-lines)
-  "TODO"
+  "Resolve all symbols in SOURCE-LINES."
   (let ((lc 0))
     (loop :for line :in source-lines
           :do (typecase line
@@ -30,7 +30,8 @@
 ;;; ----------------------------------------------------
 
 (defun do-second-pass (source-lines)
-  "TODO"
+  "Assemble all the INSTRUCTION's in SOURCE-LINES and output a hexadecimal
+string representing the Z86-64 machine instructions."
   (apply #'str:concat
          (loop :for line :in source-lines
                :when (typep line 'instruction)
@@ -65,19 +66,20 @@ level instruction."
 ;;; ----------------------------------------------------
 
 (defun assemble-mnemonic (mn)
-  "TODO"
+  "Assemble the mnemonic MN."
   (format nil "~2,'0x" (opcode-table :mnemonic-opcode mn)))
 
 ;;; ----------------------------------------------------
 
 (defun assemble-immediate (imm)
-  "TODO"
+  "Assemble the immediate IMM. Note that Z86-64 stores values big endian."
   (format nil "~16,'0x" imm))
 
 ;;; ----------------------------------------------------
 
 (defun assemble-register (reg1 &optional reg2)
-  "TODO"
+  "Assemble the register with REG1 and REG2. REG2 is optional and if ommited is
+assumed to be :NOREG."
   (let ((reg1-id (register-table :register-name-id reg1))
         (reg2-id (if reg2
                      (register-table :register-name-id reg2)
@@ -87,7 +89,7 @@ level instruction."
 ;;; ----------------------------------------------------
 
 (defun assemble-memory (memory)
-  "TODO"
+  "Assemble the RELATIVE-MEMORY address MEMORY."
   (let* ((offset (relative-address-offset memory))
          (offset* (if (symbol-name-p offset)
                       (symbol-table :symbol-value offset)
