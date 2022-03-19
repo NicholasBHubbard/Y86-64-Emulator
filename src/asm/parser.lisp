@@ -38,6 +38,7 @@
 ;;; ----------------------------------------------------
 
 (defun parse-asm-file (file-or-stream)
+  "Parse FILE-OR-STREAM into a list of SOURCE-LINE's."
   (flet ((parse-file (stream)
            (loop :for source-line = (str:trim (read-line stream nil))
                  :for line-number :from 1
@@ -313,8 +314,10 @@ on failure signal a PARSE-FAILURE condition."
 
 (defun =indirect-memory ()
   "Parse an indirect memory address into a RELATIVE-ADDRESS struct."
-  (=transform (=register)
-              (lambda (reg) (make-relative-address :base reg))))
+  (%let* ((_   (?eq #\())
+          (reg (=register))
+          (_   (?eq #\))))
+    (make-relative-address :base reg)))
 
 (defun =base-displacement-memory ()
   "Parse a base+displacement memory address into a RELATIVE-ADDRESS struct."
