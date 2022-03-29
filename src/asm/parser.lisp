@@ -201,7 +201,7 @@ SOURCE-LINE is erroneous signal a PARSE-FAILURE condition."
   "Parser for an instruction source line. On success return an
 INSTRUCTION-SOURCE-LINE struct and on failure signal a PARSE-FAILURE condition."
   (%let* ((mnemonic (%or-fail "Mnemonic" (=mnemonic)))
-          (_ (%any (?space-or-tab)))
+          (_ (%some (?space-or-tab)))
           (operands (case (opcode-table :mnemonic-type mnemonic)
                       (:N  (?null))
                       (:R  (%or-fail "Register operand" (=register-operand)))
