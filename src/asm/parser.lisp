@@ -83,7 +83,7 @@
 (deftype source-line-type ()
   "There are five different Z86-64 asm source line types.
 :INSTRUCTION, :LABEL, :DIRECTIVE, :COMMENT, or :BLANK."
-  '(member :INSTRUCTION :LABEL :DIRECTIVE :COMMENT :BLANK))
+  '(member :instruction :label :directive :comment :blank))
 
 (deftype operand ()
   "A Z86-64 operand can be a register, immediate, symbol, or relative address."
@@ -105,55 +105,30 @@
 
 ;;; ----------------------------------------------------
 
-(defclass source-line ()
-  ((type        :initarg :type        :reader source-line-type        :type source-line-type)
-   (line-number :initarg :line-number :reader source-line-line-number :type (unsigned-byte 64)))
-  (:documentation "Base class for Z86-64 asm source lines."))
+(u:defstruct-read-only source-line-metadata
+  "Every source line has a type and a line number."
+  (type        nil :type source-line-type)
+  (source-line nil :type string)
+  (line-number nil :type (unsigned-byte 64)))
 
-(defclass instruction (source-line)
-  ((mnemonic :initarg :mnemonic :reader instruction-mnemonic :type mnemonic)
-   (operand1 :initarg :operand1 :reader instruction-operand1 :type (or null operand))
-   (operand2 :initarg :operand2 :reader instruction-operand2 :type (or null operand))
-   (comment  :initarg :comment  :reader instruction-comment  :type (or null string)))
-  (:documentation "A source line for a Z86-64 asm instruction."))
+(u:defstruct-read-only instruction
+  "A Z86-64 asm instruction."
+  (source-line-metadata nil :type source-line-metadata)
+  (mnemonic             nil :type mnemonic)
+  (operand1             nil :type (or null operand))
+  (operand2             nil :type (or null operand))
+  (comment              nil :type (or null string)))
 
-(defun make-instruction (&key line-number mnemonic operand1 operand2 comment)
-  (check-type line-number (unsigned-byte 64))
-  (check-type mnemonic    mnemonic)
-  (check-type operand1    (or null operand))
-  (check-type operand2    (or null operand))
-  (check-type comment     (or null string))
-  (make-instance 'instruction :type :instruction
-                              :line-number line-number
-                              :mnemonic mnemonic
-                              :operand1 operand1
-                              :operand2 operand2
-                              :comment comment))
+(u:defstruct-read-only label
+  "A Z86-64 asm symbol definition."
+  (source-line-metadata nil :type source-line-metadata)
+  (symbol               nil :type asm-symbol)
+  (comment              nil :type (or null string)))
 
-(defclass label (source-line)
-  ((symbol  :initarg :symbol  :reader label-symbol  :type asm-symbol)
-   (comment :initarg :comment :reader label-comment :type (or null string)))
-  (:documentation "A source line for a Z86-64 label."))
-
-(defun make-label (&key line-number symbol comment)
-  (check-type line-number (unsigned-byte 64))
-  (check-type symbol      asm-symbol)
-  (check-type comment     (or null string))
-  (make-instance 'label :type :label
-                        :line-number line-number
-                        :symbol symbol
-                        :comment comment))
-
-(defclass comment (source-line)
-  ((comment :initarg :comment :reader comment-comment :type string))
-  (:documentation "A comment source line."))
-
-(defun make-comment (&key line-number comment)
-  (check-type line-number (unsigned-byte 64))
-  (check-type comment     string)
-  (make-instance 'label :type :comment
-                        :line-number line-number
-                        :comment comment))
+(u:defstruct-read-only comment
+  "A Z8664 asm comment."
+  (source-line-metadata nil :type source-line-metadata)
+  (comment              nil :type (or null string)))
 
 ;;; ----------------------------------------------------
 
@@ -201,13 +176,21 @@ SOURCE-LINE is erroneous signal a PARSE-FAILURE condition."
   "Parser for an instruction source line. On success return an
 INSTRUCTION-SOURCE-LINE struct and on failure signal a PARSE-FAILURE condition."
   (%let* ((mnemonic (%or-fail "Mnemonic" (=mnemonic)))
-          (_ (%some (?space-or-tab)))
+          ;; (_ (%any (?space-or-tab)))
           (operands (case (opcode-table :mnemonic-type mnemonic)
-                      (:N  (?null))
-                      (:R  (%or-fail "Register operand" (=register-operand)))
-                      (:M  (%or-fail "Memory operand" (=memory-operand)))
-                      (:RR (%or-fail "Register,Register operands" (=register-register-operands)))
-                      (:IR (%or-fail "Immediate,Register operands" (=immediate-register-operands)))))
+                      (:n  (?null))
+                      (:r  (%progn
+                            (%or-fail "Whitespace" (%some (?space-or-tab)))
+                            (%or-fail "Register operand" (=register-operand))))
+                      (:m  (%progn
+                            (%or-fail "Whitespace" (%some (?space-or-tab)))
+                            (%or-fail "Memory operand" (=memory-operand))))
+                      (:rr (%progn
+                            (%or-fail "Whitespace" (%some (?space-or-tab)))
+                            (%or-fail "Register,Register operands" (=register-register-operands))))
+                      (:ir (%progn
+                            (%or-fail "Whitespace" (%some (?space-or-tab)))
+                            (%or-fail "Immediate,Register operands" (=immediate-register-operands))))))
           (_ (%any (?space-or-tab)))
           (comment (%maybe (=comment)))
           (_ (%or-fail "End of source line" (?end))))
@@ -215,7 +198,11 @@ INSTRUCTION-SOURCE-LINE struct and on failure signal a PARSE-FAILURE condition."
                       :operand1 (getf operands :operand1)
                       :operand2 (getf operands :operand2)
                       :comment comment
-                      :line-number *current-line-number*)))
+                      :source-line-metadata
+                      (make-source-line-metadata
+                       :type :instruction
+                       :source-line *current-source-line*
+                       :line-number *current-line-number*))))
 
 (defun =label-source-line ()
   "Parser for a label source line. On success return a LABEL-SOURCE-LINE and on
@@ -226,7 +213,11 @@ failure signal a PARSE-FAILURE condition."
           (_ (%or-fail "End of source line" (?end))))
     (make-label :symbol symbol
                 :comment comment
-                :line-number *current-line-number*)))
+                :source-line-metadata
+                (make-source-line-metadata
+                 :type :label
+                 :source-line *current-source-line*
+                 :line-number *current-line-number*))))
 
 (defun =comment-source-line ()
   "Parser of a comment source line. On success return a COMMENT-SOURCE-LINE and
@@ -235,7 +226,11 @@ on failure signal a PARSE-FAILURE condition."
           (_ (%and (?space-or-tab)))
           (_ (%or-fail "End of source line" (?end))))
     (make-comment :comment comment
-                  :line-number *current-line-number*)))
+                  :source-line-metadata
+                  (make-source-line-metadata
+                   :type :comment
+                   :source-line *current-source-line*
+                   :line-number *current-line-number*))))
 
 ;;; ----------------------------------------------------
 
