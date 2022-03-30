@@ -9,7 +9,7 @@
 ;;; ==================== Types ====================
 
 (deftype register ()
-  '(member :RAX :RCX :RDX :RBX :RSP :RBP :RSI :RDI :R8 :R9 :R10 :R11 :R12 :R13 :R14 :NOREG))
+  '(member :rax :rcx :rdx :rbx :rsp :rbp :rsi :rdi :r8 :r9 :r10 :r11 :r12 :r13 :r14 :noreg))
 
 (u:defstruct-read-only entry
   "The type of a single Y86-64 register table entry."
@@ -63,22 +63,22 @@ Documentation for all the provided dispatch keywords:
   either a keyword or a string. "
   (let ((register-table
           (list
-           (make-entry :id #x0 :name :RAX)
-           (make-entry :id #x1 :name :RCX)
-           (make-entry :id #x2 :name :RDX)
-           (make-entry :id #x3 :name :RBX)
-           (make-entry :id #x4 :name :RSP)
-           (make-entry :id #x5 :name :RBP)
-           (make-entry :id #x6 :name :RSI)
-           (make-entry :id #x7 :name :RDI)
-           (make-entry :id #x8 :name :R8)
-           (make-entry :id #x9 :name :R9)
-           (make-entry :id #xA :name :R10)
-           (make-entry :id #xB :name :R11)
-           (make-entry :id #xC :name :R12)
-           (make-entry :id #xD :name :R13)
-           (make-entry :id #xE :name :R14)
-           (make-entry :id #xF :name :NOREG))))
+           (make-entry :id #x0 :name :rax)
+           (make-entry :id #x1 :name :rcx)
+           (make-entry :id #x2 :name :rdx)
+           (make-entry :id #x3 :name :rbx)
+           (make-entry :id #x4 :name :rsp)
+           (make-entry :id #x5 :name :rbp)
+           (make-entry :id #x6 :name :rsi)
+           (make-entry :id #x7 :name :rdi)
+           (make-entry :id #x8 :name :r8)
+           (make-entry :id #x9 :name :r9)
+           (make-entry :id #xa :name :r10)
+           (make-entry :id #xb :name :r11)
+           (make-entry :id #xc :name :r12)
+           (make-entry :id #xd :name :r13)
+           (make-entry :id #xe :name :r14)
+           (make-entry :id #xf :name :noreg))))
     (lol:dlambda
       (:id-p (id)
         (if (member id (mapcar #'entry-id register-table) :test #'=)
