@@ -46,22 +46,22 @@ level instruction."
         (operand1 (instruction-operand1 instruction))
         (operand2 (instruction-operand2 instruction)))
     (case (opcode-table :mnemonic-type mnemonic)
-      (:N  (assemble-mnemonic mnemonic))
+      (:n  (assemble-mnemonic mnemonic))
       
-      (:R  (str:concat (assemble-mnemonic mnemonic)
+      (:r  (str:concat (assemble-mnemonic mnemonic)
                        (assemble-register operand1)))
       
-      (:M  (str:concat (assemble-mnemonic mnemonic)
+      (:m  (str:concat (assemble-mnemonic mnemonic)
                        (assemble-memory operand1)))
       
-      (:IR (str:concat (assemble-mnemonic mnemonic)
+      (:ir (str:concat (assemble-mnemonic mnemonic)
                        (assemble-immediate operand1)
                        (assemble-register operand2)))
       
-      (:RR (str:concat (assemble-mnemonic mnemonic)
+      (:rr (str:concat (assemble-mnemonic mnemonic)
                        (assemble-register operand1 operand2)))
 
-      (otherwise (error 'u:internal-error :reason "Unreachable code.")))))
+      (otherwise (error 'u:internal-error :reason "unreachable code.")))))
 
 ;;; ----------------------------------------------------
 
