@@ -11,7 +11,7 @@
 
 (deftype mnemonic ()
   "The type of a Y86-64 mnemonic."
-  '(member :HALT :NOP :RRMOVQ :IRMOVQ :RMMOVQ :MRMOVQ :ADDQ :SUBQ :ANDQ :XORQ :JMP :JLE :JL :JE :JNE :JGE :JG :CMOVLE :CMOVL :CMOVE :CMOVNE :CMOVGE :CMOVG :CALL :RET :PUSHQ))
+  '(member :halt :nop :rrmovq :irmovq :rmmovq :mrmovq :addq :subq :andq :xorq :jmp :jle :jl :je :jne :jge :jg :cmovle :cmovl :cmove :cmovne :cmovge :cmovg :call :ret :pushq))
 
 (deftype instruction-type ()
   "The operand type of a Y86-64 instruction.
@@ -20,7 +20,7 @@
 :R  -> Register operand
 :RR -> Register,Register operand
 :IR -> Immediate,Register operand"
-  '(member :N :M :R :RR :IR))
+  '(member :n :m :r :rr :ir))
 
 (u:defstruct-read-only entry
   "The type of a single Y86-64 opcode table entry."
@@ -146,32 +146,32 @@ Documentation for all the provided dispatch keywords:
   Return a list of the mnemonic strings of instructions with size SIZE."
   (let ((opcode-table
           (list
-           (make-entry :opcode #x00 :mnemonic :HALT   :type :N  :size  1)
-           (make-entry :opcode #x10 :mnemonic :NOP    :type :N  :size  1)
-           (make-entry :opcode #x20 :mnemonic :RRMOVQ :type :RR :size  2)
-           (make-entry :opcode #x30 :mnemonic :IRMOVQ :type :IR :size 10)
-           (make-entry :opcode #x40 :mnemonic :RMMOVQ :type :RR :size  2)
-           (make-entry :opcode #x50 :mnemonic :MRMOVQ :type :RR :size  2)
-           (make-entry :opcode #x60 :mnemonic :ADDQ   :type :RR :size  2)
-           (make-entry :opcode #x61 :mnemonic :SUBQ   :type :RR :size  2)
-           (make-entry :opcode #x62 :mnemonic :ANDQ   :type :RR :size  2)
-           (make-entry :opcode #x63 :mnemonic :XORQ   :type :RR :size  2)
-           (make-entry :opcode #x70 :mnemonic :JMP    :type :M  :size  11)
-           (make-entry :opcode #x71 :mnemonic :JLE    :type :M  :size  11)
-           (make-entry :opcode #x72 :mnemonic :JL     :type :M  :size  11)
-           (make-entry :opcode #x73 :mnemonic :JE     :type :M  :size  11)
-           (make-entry :opcode #x74 :mnemonic :JNE    :type :M  :size  11)
-           (make-entry :opcode #x75 :mnemonic :JGE    :type :M  :size  11)
-           (make-entry :opcode #x76 :mnemonic :JG     :type :M  :size  11)
-           (make-entry :opcode #x21 :mnemonic :CMOVLE :type :RR :size  2)
-           (make-entry :opcode #x22 :mnemonic :CMOVL  :type :RR :size  2)
-           (make-entry :opcode #x23 :mnemonic :CMOVE  :type :RR :size  2)
-           (make-entry :opcode #x24 :mnemonic :CMOVNE :type :RR :size  2)
-           (make-entry :opcode #x25 :mnemonic :CMOVGE :type :RR :size  2)
-           (make-entry :opcode #x26 :mnemonic :CMOVG  :type :RR :size  2)
-           (make-entry :opcode #x80 :mnemonic :CALL   :type :M  :size  11)
-           (make-entry :opcode #x90 :mnemonic :RET    :type :N  :size  1)
-           (make-entry :opcode #xA0 :mnemonic :PUSHQ  :type :R  :size  2))))
+           (make-entry :opcode #x00 :mnemonic :halt   :type :n  :size  1)
+           (make-entry :opcode #x10 :mnemonic :nop    :type :n  :size  1)
+           (make-entry :opcode #x20 :mnemonic :rrmovq :type :rr :size  2)
+           (make-entry :opcode #x30 :mnemonic :irmovq :type :ir :size 10)
+           (make-entry :opcode #x40 :mnemonic :rmmovq :type :rr :size  2)
+           (make-entry :opcode #x50 :mnemonic :mrmovq :type :rr :size  2)
+           (make-entry :opcode #x60 :mnemonic :addq   :type :rr :size  2)
+           (make-entry :opcode #x61 :mnemonic :subq   :type :rr :size  2)
+           (make-entry :opcode #x62 :mnemonic :andq   :type :rr :size  2)
+           (make-entry :opcode #x63 :mnemonic :xorq   :type :rr :size  2)
+           (make-entry :opcode #x70 :mnemonic :jmp    :type :m  :size  11)
+           (make-entry :opcode #x71 :mnemonic :jle    :type :m  :size  11)
+           (make-entry :opcode #x72 :mnemonic :jl     :type :m  :size  11)
+           (make-entry :opcode #x73 :mnemonic :je     :type :m  :size  11)
+           (make-entry :opcode #x74 :mnemonic :jne    :type :m  :size  11)
+           (make-entry :opcode #x75 :mnemonic :jge    :type :m  :size  11)
+           (make-entry :opcode #x76 :mnemonic :jg     :type :m  :size  11)
+           (make-entry :opcode #x21 :mnemonic :cmovle :type :rr :size  2)
+           (make-entry :opcode #x22 :mnemonic :cmovl  :type :rr :size  2)
+           (make-entry :opcode #x23 :mnemonic :cmove  :type :rr :size  2)
+           (make-entry :opcode #x24 :mnemonic :cmovne :type :rr :size  2)
+           (make-entry :opcode #x25 :mnemonic :cmovge :type :rr :size  2)
+           (make-entry :opcode #x26 :mnemonic :cmovg  :type :rr :size  2)
+           (make-entry :opcode #x80 :mnemonic :call   :type :m  :size  11)
+           (make-entry :opcode #x90 :mnemonic :ret    :type :n  :size  1)
+           (make-entry :opcode #xa0 :mnemonic :pushq  :type :r  :size  2))))
     (lol:dlambda
       (:opcode-p (opcode)
         (if (member opcode (mapcar #'entry-opcode opcode-table) :test #'=) t))
