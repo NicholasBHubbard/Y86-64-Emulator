@@ -26,7 +26,7 @@
 
 (deftype asm-symbol-type ()
   "The type for the type of a Z86-64 asm symbol."
-  '(member :UNDEF :ABS :TEXT :DATA :BSS))
+  '(member :undef :abs :text :data :bss))
 
 (u:defstruct-read-only entry
   "The type of a single symbol table entry."
