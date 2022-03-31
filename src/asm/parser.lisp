@@ -223,7 +223,7 @@ failure signal a PARSE-FAILURE condition."
   "Parser of a comment source line. On success return a COMMENT-SOURCE-LINE and
 on failure signal a PARSE-FAILURE condition."
   (%let* ((comment (%or-fail "Comment" (=comment)))
-          (_ (%and (?space-or-tab)))
+          (_ (%any (?space-or-tab)))
           (_ (%or-fail "End of source line" (?end))))
     (make-comment :comment comment
                   :source-line-metadata
