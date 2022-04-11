@@ -171,7 +171,8 @@ Documentation for all the provided dispatch keywords:
            (make-entry :opcode #x26 :mnemonic :cmovg  :type :rr :size  2)
            (make-entry :opcode #x80 :mnemonic :call   :type :m  :size  11)
            (make-entry :opcode #x90 :mnemonic :ret    :type :n  :size  1)
-           (make-entry :opcode #xa0 :mnemonic :pushq  :type :r  :size  2))))
+           (make-entry :opcode #xa0 :mnemonic :pushq  :type :r  :size  2)
+           (make-entry :opcode #xb0 :mnemonic :popq   :type :r  :size  2))))
     (lol:dlambda
       (:opcode-p (opcode)
         (if (member opcode (mapcar #'entry-opcode opcode-table) :test #'=) t))
